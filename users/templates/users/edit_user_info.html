@@ -1,0 +1,57 @@
+{% extends 'users/base.html' %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}
+{% trans "Kullanıcı Bilgileri" %}
+{% endblock title %}
+
+{% block content_users %}
+<div class="container py-3">
+    <h2>{% trans 'Kullanıcı Bilgileri' %}</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <table class="table">
+
+            <tr>
+                <td>{% trans 'Kullanıcı Adı' %}:</td>
+                <td>{{user.username}}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Email' %}:</td>
+                <td>{% render_field form.email class="form-control" %}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Şifre' %}:</td>
+                <td>************ <a href="{% url 'users:password_change' %}">Değiştirmek için Tıklayınız</a></td>
+            </tr>
+            <tr>
+                <td>{% trans 'İsim' %}:</td>
+                <td>{% render_field form.first_name class="form-control" %}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Soyisim' %}:</td>
+                <td>{% render_field form.last_name class="form-control form-control" %}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Kurum' %}:</td>
+                <td>{% render_field form.institution class="form-control" %}</td>
+            </tr>
+
+
+        </table>
+        <div class="container text-center">
+            <button type="submit" class="btn btn-success">{% trans 'Kaydet' %}</button>
+            <a href="{% url 'home' %}" class="btn btn-danger">{% trans 'İptal' %}</a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% load widget_tweaks %}
+{% load institution %}
+
+<div class="form-group {{ extra_class }}">
+    <label>{{ field.label }}</label>
+    {% render_field field class="form-control" list="institution_list" %}
+
+    {% get_unique_institutions as institution_list %}
+    <datalist id="institution_list">
+        {% for institution in institution_list %}
+        <option>{{ institution }}</option>
+        {% endfor %}
+    </datalist>
+
+    <small class="text-muted">{{ field.help_text|safe }}</small>
+    {% for error in field.errors %}
+    <div class="alert alert-danger" role="alert">{{ error|safe }}</div>
+    {% endfor %}
+</div>

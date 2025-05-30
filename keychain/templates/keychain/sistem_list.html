@@ -1,0 +1,1360 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistemler</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'keychain/css/index.css' %}" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow border-0 py-3">
+      <div class="container-fluid px-4">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-light btn-sm rounded-3 border-0 shadow-sm d-md-none me-3" id="sidebarToggle">
+            <i class="fas fa-bars fs-5 text-secondary"></i>
+          </button>
+          <a href="#" class="navbar-brand d-flex align-items-center gap-2 text-decoration-none">
+            <img src="{% static 'keychain/images/qrplogo.jpg' %}" alt="QRP Logo" style="height: 30px;">
+          </a>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="language-selector d-none d-md-flex">
+            <img
+              src="https://flagcdn.com/w40/tr.png"
+              title="Türkçe"
+              class="active"
+            />
+            <img src="https://flagcdn.com/w40/gb.png" title="English" />
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+              <div class="bg-white bg-opacity-25 rounded-circle p-1">
+                <i class="fas fa-user-circle fs-5 text-white"></i>
+              </div>
+              <span class="d-none d-md-inline fw-medium">{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</span>
+              <i class="fas fa-chevron-down small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="#">
+                  <i class="fas fa-cog text-primary"></i>
+                  <span>Ayarlar</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="#">
+                  <i class="fas fa-question-circle text-primary"></i>
+                  <span>Yardım</span>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider my-2"></li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded text-danger" href="{% url 'keychain:logout' %}">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Çıkış Yap</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar bg-dark">
+      <ul class="nav flex-column pt-3" role="navigation">
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link" href="{% url 'keychain:home' %}">
+            <i class="fas fa-home fs-5"></i><span>Anasayfa</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link" href="{% url 'keychain:project_list' %}">
+           <i class="fas fa-list-ul fs-5"></i><span>Proje Listeleri</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link active" href="{% url 'keychain:sistem_list' %}">
+            <i class="fas fa-cogs fs-5"></i><span>Sistemler</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Sidebar overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <div class="main-content bg-light">
+      <div class="container-fluid px-4 py-5">
+        <!-- Başlık ve Buton -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+          <div>
+            <h2 class="fw-bold text-dark mb-1 display-6">
+              <i class="fas fa-cogs text-primary me-2"></i>Sistemler
+            </h2>
+            <p class="text-muted mb-0">Sistemde kayıtlı sistem listelerini yönetin</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#sistemEkleModal">
+            <i class="fas fa-plus-circle me-2"></i>Yeni Sistem
+          </button>
+        </div>
+
+        <!-- Sistemler Kartları -->
+        <div class="row g-4">
+          {% for system in systems %}
+          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+            <div class="card h-100 shadow-sm border-0 rounded-4 system-card" data-system-id="{{ system.id }}">
+              <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="system-icon">
+                    {% if system.system_type == "1" or system.system_type == "Database" %}
+                      <i class="fas fa-database fs-2 text-primary"></i>
+                    {% elif system.system_type == "2" or system.system_type == "VPN" %}
+                      <i class="fas fa-shield-alt fs-2 text-success"></i>
+                    {% elif system.system_type == "3" or system.system_type == "SERVER" %}
+                      <i class="fas fa-server fs-2 text-warning"></i>
+                    {% elif system.system_type == "4" or system.system_type == "Application" %}
+                      <i class="fas fa-desktop fs-2 text-info"></i>
+                    {% else %}
+                      <i class="fas fa-cog fs-2 text-secondary"></i>
+                    {% endif %}
+                  </div>
+                  <div class="dropdown">
+                    <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item" href="#" 
+                           data-bs-toggle="modal" 
+                           data-bs-target="#sistemDuzenleModal"
+                           data-id="{{ system.id }}"
+                           data-name="{{ system.name }}"
+                           data-number="{{ system.number }}"
+                           data-system-type="{{ system.system_type }}"
+                           data-project-id="{% if system.project %}{{ system.project.id }}{% endif %}">
+                          <i class="fas fa-edit me-2"></i>Düzenle
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                           data-bs-toggle="modal"
+                           data-bs-target="#sistemSilModal"
+                           data-id="{{ system.id }}"
+                           data-name="{{ system.name }}">
+                          <i class="fas fa-trash me-2"></i>Sil
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <h5 class="card-title fw-bold mb-2">{{ system.name }}</h5>
+                {% if system.project %}
+                <p class="text-muted mb-2">
+                  <i class="fas fa-folder me-1"></i>{{ system.project.name }}
+                </p>
+                {% endif %}
+                <p class="text-muted mb-2">
+                  <i class="fas fa-hashtag me-1"></i>{{ system.number }}
+                </p>
+                
+                <div class="system-type-badge mb-3">
+                  {% if system.system_type == "1" or system.system_type == "Database" %}
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                      <i class="fas fa-database me-1"></i>Database
+                    </span>
+                  {% elif system.system_type == "2" or system.system_type == "VPN" %}
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                      <i class="fas fa-shield-alt me-1"></i>VPN
+                    </span>
+                  {% elif system.system_type == "3" or system.system_type == "SERVER" %}
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">
+                      <i class="fas fa-server me-1"></i>Server
+                    </span>
+                  {% elif system.system_type == "4" or system.system_type == "Application" %}
+                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill">
+                      <i class="fas fa-desktop me-1"></i>Application
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill">
+                      <i class="fas fa-cog me-1"></i>{{ system.system_type }}
+                    </span>
+                  {% endif %}
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>ID: {{ system.id }}
+                  </small>
+                  <button class="btn btn-outline-primary btn-sm rounded-pill px-3" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#sistemDetayModal"
+                          data-id="{{ system.id }}"
+                          data-name="{{ system.name }}"
+                          data-number="{{ system.number }}"
+                          data-system-type="{{ system.system_type }}"
+                          data-project-name="{% if system.project %}{{ system.project.name }}{% endif %}">
+                    <i class="fas fa-eye me-1"></i>Detay
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12">
+            <div class="text-center py-5">
+              <i class="fas fa-cogs fs-1 text-muted mb-3"></i>
+              <h4 class="text-muted">Henüz sistem eklenmemiş</h4>
+              <p class="text-muted mb-4">İlk sisteminizi eklemek için "Yeni Sistem" butonuna tıklayın.</p>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sistemEkleModal">
+                <i class="fas fa-plus-circle me-2"></i>Yeni Sistem Ekle
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sistem Ekle Modal -->
+    <div class="modal fade" id="sistemEkleModal" tabindex="-1" aria-labelledby="sistemEkleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-primary bg-opacity-10">
+            <h5 class="modal-title fw-bold text-primary" id="sistemEkleModalLabel">
+              <i class="fas fa-plus-circle me-2"></i>Yeni Sistem Ekle
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="projeAdi" class="form-label fw-medium">Proje Adı</label>
+                  <select class="form-select" id="projeAdi">
+                    <option value="">Proje seçiniz</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="sistemTipi" class="form-label fw-medium">Sistem Tipi</label>
+                  <select class="form-select" id="sistemTipi" onchange="sistemTipiDegisti()">
+                    <option value="">Seçiniz</option>
+                    <option value="1">Database</option>
+                    <option value="2">VPN</option>
+                    <option value="3">SERVER</option>
+                    <option value="4">Application</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="sistemAdi" class="form-label fw-medium">Sistem Adı</label>
+                  <input type="text" class="form-control" id="sistemAdi" placeholder="Sistem adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="sistemNo" class="form-label fw-medium">Sistem No</label>
+                  <input type="text" class="form-control" id="sistemNo" placeholder="Sistem numarasını giriniz">
+                </div>
+              </div>
+              
+              <!-- VPN Alanları -->
+              <div id="vpnAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-primary fw-bold mb-3">
+                    <i class="fas fa-shield-alt me-2"></i>VPN Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="vpnServer" class="form-label fw-medium">VPN Server</label>
+                  <input type="text" class="form-control" id="vpnServer" placeholder="VPN server adresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="vpnKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="vpnKullaniciAdi" placeholder="VPN kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="vpnSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="vpnSifre" placeholder="VPN şifresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="vpnPort" class="form-label fw-medium">Port</label>
+                  <input type="text" class="form-control" id="vpnPort" placeholder="VPN port numarasını giriniz">
+                </div>
+              </div>
+              
+              <!-- Database Alanları -->
+              <div id="databaseAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-primary fw-bold mb-3">
+                    <i class="fas fa-database me-2"></i>Database Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="dbHost" class="form-label fw-medium">Host</label>
+                  <input type="text" class="form-control" id="dbHost" placeholder="Database host adresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="dbPort" class="form-label fw-medium">Port</label>
+                  <input type="text" class="form-control" id="dbPort" placeholder="Database port numarasını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="dbKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="dbKullaniciAdi" placeholder="Database kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="dbSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="dbSifre" placeholder="Database şifresini giriniz">
+                </div>
+              </div>
+              
+              <!-- Server Alanları -->
+              <div id="serverAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-warning fw-bold mb-3">
+                    <i class="fas fa-server me-2"></i>Server Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="serverIP" class="form-label fw-medium">IP Adresi</label>
+                  <input type="text" class="form-control" id="serverIP" placeholder="Server IP adresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="serverOS" class="form-label fw-medium">İşletim Sistemi</label>
+                  <input type="text" class="form-control" id="serverOS" placeholder="İşletim sistemini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="serverKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="serverKullaniciAdi" placeholder="Server kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="serverSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="serverSifre" placeholder="Server şifresini giriniz">
+                </div>
+              </div>
+              
+              <!-- Application Alanları -->
+              <div id="applicationAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-info fw-bold mb-3">
+                    <i class="fas fa-desktop me-2"></i>Uygulama Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="appURL" class="form-label fw-medium">URL</label>
+                  <input type="text" class="form-control" id="appURL" placeholder="Uygulama URL'sini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="appVersiyon" class="form-label fw-medium">Versiyon</label>
+                  <input type="text" class="form-control" id="appVersiyon" placeholder="Uygulama versiyonunu giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="appKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="appKullaniciAdi" placeholder="Uygulama kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="appSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="appSifre" placeholder="Uygulama şifresini giriniz">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-primary" onclick="sistemEkle()">
+              <i class="fas fa-save me-2"></i>Kaydet
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sistem Düzenle Modal -->
+    <div class="modal fade" id="sistemDuzenleModal" tabindex="-1" aria-labelledby="sistemDuzenleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-primary bg-opacity-10">
+            <h5 class="modal-title fw-bold text-primary" id="sistemDuzenleModalLabel">
+              <i class="fas fa-edit me-2"></i>Sistem Düzenle
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="duzenleForm">
+              <input type="hidden" id="duzenle_sistemId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="duzenle_projeAdi" class="form-label fw-medium">Proje Adı</label>
+                  <select class="form-select" id="duzenle_projeAdi">
+                    <option value="">Proje seçiniz</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_sistemTipi" class="form-label fw-medium">Sistem Tipi</label>
+                  <select class="form-select" id="duzenle_sistemTipi" onchange="duzenle_sistemTipiDegisti()">
+                    <option value="0">Seçiniz</option>
+                    <option value="1">Database</option>
+                    <option value="2">VPN</option>
+                    <option value="3">SERVER</option>
+                    <option value="4">Application</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_sistemAdi" class="form-label fw-medium">Sistem Adı</label>
+                  <input type="text" class="form-control" id="duzenle_sistemAdi" placeholder="Sistem adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_sistemNo" class="form-label fw-medium">Sistem No</label>
+                  <input type="text" class="form-control" id="duzenle_sistemNo" placeholder="Sistem numarasını giriniz">
+                </div>
+              </div>
+              
+              <!-- VPN Alanları -->
+              <div id="duzenle_vpnAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-primary fw-bold mb-3">
+                    <i class="fas fa-shield-alt me-2"></i>VPN Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_vpnServer" class="form-label fw-medium">VPN Server</label>
+                  <input type="text" class="form-control" id="duzenle_vpnServer" placeholder="VPN server adresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_vpnKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="duzenle_vpnKullaniciAdi" placeholder="VPN kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_vpnSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="duzenle_vpnSifre" placeholder="VPN şifresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_vpnPort" class="form-label fw-medium">Port</label>
+                  <input type="text" class="form-control" id="duzenle_vpnPort" placeholder="VPN port numarasını giriniz">
+                </div>
+              </div>
+              
+              <!-- Database Alanları -->
+              <div id="duzenle_databaseAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-primary fw-bold mb-3">
+                    <i class="fas fa-database me-2"></i>Database Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_dbHost" class="form-label fw-medium">Host</label>
+                  <input type="text" class="form-control" id="duzenle_dbHost" placeholder="Database host adresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_dbPort" class="form-label fw-medium">Port</label>
+                  <input type="text" class="form-control" id="duzenle_dbPort" placeholder="Database port numarasını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_dbKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="duzenle_dbKullaniciAdi" placeholder="Database kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_dbSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="duzenle_dbSifre" placeholder="Database şifresini giriniz">
+                </div>
+              </div>
+              
+              <!-- Server Alanları -->
+              <div id="duzenle_serverAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-warning fw-bold mb-3">
+                    <i class="fas fa-server me-2"></i>Server Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_serverIP" class="form-label fw-medium">IP Adresi</label>
+                  <input type="text" class="form-control" id="duzenle_serverIP" placeholder="Server IP adresini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_serverOS" class="form-label fw-medium">İşletim Sistemi</label>
+                  <input type="text" class="form-control" id="duzenle_serverOS" placeholder="İşletim sistemini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_serverKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="duzenle_serverKullaniciAdi" placeholder="Server kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_serverSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="duzenle_serverSifre" placeholder="Server şifresini giriniz">
+                </div>
+              </div>
+              
+              <!-- Application Alanları -->
+              <div id="duzenle_applicationAlanlari" class="row g-3 mt-3" style="display: none;">
+                <div class="col-12">
+                  <h6 class="text-info fw-bold mb-3">
+                    <i class="fas fa-desktop me-2"></i>Uygulama Bilgileri
+                  </h6>
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_appURL" class="form-label fw-medium">URL</label>
+                  <input type="text" class="form-control" id="duzenle_appURL" placeholder="Uygulama URL'sini giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_appVersiyon" class="form-label fw-medium">Versiyon</label>
+                  <input type="text" class="form-control" id="duzenle_appVersiyon" placeholder="Uygulama versiyonunu giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_appKullaniciAdi" class="form-label fw-medium">Kullanıcı Adı</label>
+                  <input type="text" class="form-control" id="duzenle_appKullaniciAdi" placeholder="Uygulama kullanıcı adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_appSifre" class="form-label fw-medium">Şifre</label>
+                  <input type="text" class="form-control" id="duzenle_appSifre" placeholder="Uygulama şifresini giriniz">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-primary" onclick="sistemGuncelle()">
+              <i class="fas fa-save me-2"></i>Güncelle
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sistem Detay Modal -->
+    <div class="modal fade" id="sistemDetayModal" tabindex="-1" aria-labelledby="sistemDetayModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-info bg-opacity-10">
+            <h5 class="modal-title fw-bold text-info" id="sistemDetayModalLabel">
+              <i class="fas fa-info-circle me-2"></i>Sistem Detayları
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-4">
+              <!-- Temel Bilgiler -->
+              <div class="col-12">
+                <div class="card border-0 bg-light">
+                  <div class="card-body">
+                    <h6 class="card-title fw-bold text-primary mb-3">
+                      <i class="fas fa-info-circle me-2"></i>Temel Bilgiler
+                    </h6>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label fw-medium text-muted">Sistem Adı</label>
+                        <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
+                          <p class="mb-0 fw-bold" id="detay_sistemAdi">-</p>
+                          <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_sistemAdi')" title="Kopyala">
+                            <i class="fas fa-copy"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-medium text-muted">Sistem No</label>
+                        <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
+                          <p class="mb-0 fw-bold" id="detay_sistemNo">-</p>
+                          <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_sistemNo')" title="Kopyala">
+                            <i class="fas fa-copy"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-medium text-muted">Proje</label>
+                        <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
+                          <p class="mb-0 fw-bold" id="detay_projeAdi">-</p>
+                          <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_projeAdi')" title="Kopyala">
+                            <i class="fas fa-copy"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-medium text-muted">Sistem Tipi</label>
+                        <div class="bg-white p-3 rounded border">
+                          <p class="mb-0" id="detay_sistemTipi">-</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Ek Bilgiler -->
+              <div class="col-12" id="detay_ekBilgiler" style="display: none;">
+                <div class="card border-0 bg-light">
+                  <div class="card-body">
+                    <h6 class="card-title fw-bold text-success mb-3">
+                      <i class="fas fa-cogs me-2"></i>Ek Bilgiler
+                    </h6>
+                    <div class="row g-3" id="detay_ekBilgilerIcerik">
+                      <!-- Dinamik olarak doldurulacak -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sistem Sil Modal -->
+    <div class="modal fade" id="sistemSilModal" tabindex="-1" aria-labelledby="sistemSilModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-danger bg-opacity-10">
+            <h5 class="modal-title fw-bold text-danger" id="sistemSilModalLabel">
+              <i class="fas fa-exclamation-triangle me-2"></i>Sistem Sil
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="sil_sistemId">
+            <p class="mb-3">Aşağıdaki sistemi silmek istediğinizden emin misiniz?</p>
+            <div class="alert alert-light border">
+              <h6 class="mb-1 fw-bold" id="sil_sistemAdi"></h6>
+              <small class="text-muted">Bu işlem geri alınamaz!</small>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+            <button type="button" class="btn btn-danger" onclick="sistemSil()">
+              <i class="fas fa-trash me-2"></i>Sil
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+      // Mobile menu toggle functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const menuToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        
+        if (menuToggle && sidebar) {
+          menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+          });
+
+          // Close sidebar when clicking overlay
+          if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+              sidebar.classList.remove('show');
+              sidebarOverlay.classList.remove('show');
+            });
+          }
+
+          // Close sidebar when clicking on a nav link (mobile)
+          const navLinks = sidebar.querySelectorAll('.nav-link');
+          navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+              if (window.innerWidth <= 768) {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+              }
+            });
+          });
+        }
+
+        // Sistem Düzenle Modal
+        const sistemDuzenleModal = document.getElementById('sistemDuzenleModal');
+        if (sistemDuzenleModal) {
+          sistemDuzenleModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const sistemId = button.getAttribute('data-id');
+            
+            // Backend'den sistem detaylarını çek
+            fetch(`/keychain/get_company_details/${sistemId}/`, {
+              method: 'GET',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                document.getElementById('duzenle_sistemId').value = data.id;
+                document.getElementById('duzenle_sistemAdi').value = data.name;
+                document.getElementById('duzenle_sistemNo').value = data.number;
+                
+                // Proje seçimini set et
+                if (data.project_name) {
+                  // Proje ID'sini bulmak için select option'larını kontrol et
+                  const projeSelect = document.getElementById('duzenle_projeAdi');
+                  for (let option of projeSelect.options) {
+                    if (option.text === data.project_name) {
+                      projeSelect.value = option.value;
+                      break;
+                    }
+                  }
+                } else {
+                  document.getElementById('duzenle_projeAdi').value = '';
+                }
+                
+                // Sistem tipini set et
+                const sistemTipiMap = {
+                  'Database': '1',
+                  'VPN': '2',
+                  'SERVER': '3',
+                  'Application': '4'
+                };
+                const sistemTipiValue = sistemTipiMap[data.system_type] || '0';
+                document.getElementById('duzenle_sistemTipi').value = sistemTipiValue;
+                
+                // Sistem tipine göre alanları göster
+                duzenle_sistemTipiDegisti();
+                
+                // Mevcut ek bilgileri doldur
+                const additionalInfo = data.additional_info || {};
+                switch(data.system_type) {
+                  case 'Database':
+                    document.getElementById('duzenle_dbHost').value = additionalInfo.host || '';
+                    document.getElementById('duzenle_dbPort').value = additionalInfo.port || '';
+                    document.getElementById('duzenle_dbKullaniciAdi').value = additionalInfo.username || '';
+                    document.getElementById('duzenle_dbSifre').value = additionalInfo.password || '';
+                    break;
+                  case 'VPN':
+                    document.getElementById('duzenle_vpnServer').value = additionalInfo.server || '';
+                    document.getElementById('duzenle_vpnKullaniciAdi').value = additionalInfo.username || '';
+                    document.getElementById('duzenle_vpnSifre').value = additionalInfo.password || '';
+                    document.getElementById('duzenle_vpnPort').value = additionalInfo.port || '';
+                    break;
+                  case 'SERVER':
+                    document.getElementById('duzenle_serverIP').value = additionalInfo.ip_address || '';
+                    document.getElementById('duzenle_serverOS').value = additionalInfo.os || '';
+                    document.getElementById('duzenle_serverKullaniciAdi').value = additionalInfo.username || '';
+                    document.getElementById('duzenle_serverSifre').value = additionalInfo.password || '';
+                    break;
+                  case 'Application':
+                    document.getElementById('duzenle_appURL').value = additionalInfo.url || '';
+                    document.getElementById('duzenle_appVersiyon').value = additionalInfo.version || '';
+                    document.getElementById('duzenle_appKullaniciAdi').value = additionalInfo.username || '';
+                    document.getElementById('duzenle_appSifre').value = additionalInfo.password || '';
+                    break;
+                }
+              } else {
+                console.error('Error fetching system details:', data.error);
+                alert('Sistem detayları yüklenirken bir hata oluştu: ' + data.error);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Bağlantı hatası: ' + error.message);
+            });
+          });
+        }
+
+        // Sistem Ekle Modal
+        const sistemEkleModal = document.getElementById('sistemEkleModal');
+        if (sistemEkleModal) {
+          sistemEkleModal.addEventListener('show.bs.modal', function (event) {
+            modalTemizle();
+          });
+        }
+
+        // Sistem Sil Modal
+        const sistemSilModal = document.getElementById('sistemSilModal');
+        if (sistemSilModal) {
+          sistemSilModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const sistemId = button.getAttribute('data-id');
+            const sistemAdi = button.getAttribute('data-name');
+            
+            document.getElementById('sil_sistemId').value = sistemId;
+            document.getElementById('sil_sistemAdi').textContent = sistemAdi;
+          });
+        }
+
+        // Sistem Detay Modal
+        const sistemDetayModal = document.getElementById('sistemDetayModal');
+        if (sistemDetayModal) {
+          sistemDetayModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const sistemId = button.getAttribute('data-id');
+            
+            // Backend'den sistem detaylarını çek
+            fetch(`/keychain/get_company_details/${sistemId}/`, {
+              method: 'GET',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Temel bilgileri doldur
+                document.getElementById('detay_sistemAdi').textContent = data.name || '-';
+                document.getElementById('detay_sistemNo').textContent = data.number || '-';
+                document.getElementById('detay_projeAdi').textContent = data.project_name || '-';
+                
+                // Sistem tipi badge'ini oluştur
+                let sistemTipiBadge = '';
+                switch(data.system_type) {
+                  case 'Database':
+                    sistemTipiBadge = '<span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><i class="fas fa-database me-1"></i>Database</span>';
+                    break;
+                  case 'VPN':
+                    sistemTipiBadge = '<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-shield-alt me-1"></i>VPN</span>';
+                    break;
+                  case 'SERVER':
+                    sistemTipiBadge = '<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><i class="fas fa-server me-1"></i>Server</span>';
+                    break;
+                  case 'Application':
+                    sistemTipiBadge = '<span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill"><i class="fas fa-desktop me-1"></i>Application</span>';
+                    break;
+                  default:
+                    sistemTipiBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill"><i class="fas fa-cog me-1"></i>' + data.system_type + '</span>';
+                }
+                document.getElementById('detay_sistemTipi').innerHTML = sistemTipiBadge;
+                
+                // Ek bilgileri göster
+                showAdditionalInfo(data.additional_info || {}, data.system_type);
+              } else {
+                console.error('Error fetching system details:', data.error);
+                alert('Sistem detayları yüklenirken bir hata oluştu: ' + data.error);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Bağlantı hatası: ' + error.message);
+            });
+          });
+        }
+      });
+
+      // Sistem Tipi Değiştiğinde
+      function sistemTipiDegisti() {
+        const sistemTipi = document.getElementById('sistemTipi').value;
+        
+        // Tüm özel alanları gizle
+        document.getElementById('vpnAlanlari').style.display = 'none';
+        document.getElementById('databaseAlanlari').style.display = 'none';
+        document.getElementById('serverAlanlari').style.display = 'none';
+        document.getElementById('applicationAlanlari').style.display = 'none';
+        
+        // Seçilen tipe göre ilgili alanları göster
+        switch(sistemTipi) {
+          case '1': // Database
+            document.getElementById('databaseAlanlari').style.display = 'flex';
+            break;
+          case '2': // VPN
+            document.getElementById('vpnAlanlari').style.display = 'flex';
+            break;
+          case '3': // Server
+            document.getElementById('serverAlanlari').style.display = 'flex';
+            break;
+          case '4': // Application
+            document.getElementById('applicationAlanlari').style.display = 'flex';
+            break;
+        }
+      }
+
+      // Düzenleme Modal'ı için Sistem Tipi Değiştiğinde
+      function duzenle_sistemTipiDegisti() {
+        const sistemTipi = document.getElementById('duzenle_sistemTipi').value;
+        
+        // Tüm özel alanları gizle
+        document.getElementById('duzenle_vpnAlanlari').style.display = 'none';
+        document.getElementById('duzenle_databaseAlanlari').style.display = 'none';
+        document.getElementById('duzenle_serverAlanlari').style.display = 'none';
+        document.getElementById('duzenle_applicationAlanlari').style.display = 'none';
+        
+        // Seçilen tipe göre ilgili alanları göster
+        switch(sistemTipi) {
+          case '1': // Database
+            document.getElementById('duzenle_databaseAlanlari').style.display = 'flex';
+            break;
+          case '2': // VPN
+            document.getElementById('duzenle_vpnAlanlari').style.display = 'flex';
+            break;
+          case '3': // Server
+            document.getElementById('duzenle_serverAlanlari').style.display = 'flex';
+            break;
+          case '4': // Application
+            document.getElementById('duzenle_applicationAlanlari').style.display = 'flex';
+            break;
+        }
+      }
+
+      // Sistem Ekleme İşlemi
+      function sistemEkle() {
+        const projeAdi = document.getElementById('projeAdi').value;
+        const sistemAdi = document.getElementById('sistemAdi').value;
+        const sistemNo = document.getElementById('sistemNo').value;
+        const sistemTipi = document.getElementById('sistemTipi').value;
+
+        // Check if fields are empty
+        if (!projeAdi || !sistemAdi || !sistemNo || !sistemTipi) {
+          console.error('All fields are required.');
+          alert('Lütfen tüm alanları doldurunuz!');
+          return;
+        }
+
+        // Ek alanları topla
+        let ekBilgiler = {};
+        
+        switch(sistemTipi) {
+          case '1': // Database
+            ekBilgiler = {
+              host: document.getElementById('dbHost').value,
+              port: document.getElementById('dbPort').value,
+              username: document.getElementById('dbKullaniciAdi').value,
+              password: document.getElementById('dbSifre').value
+            };
+            break;
+          case '2': // VPN
+            ekBilgiler = {
+              server: document.getElementById('vpnServer').value,
+              username: document.getElementById('vpnKullaniciAdi').value,
+              password: document.getElementById('vpnSifre').value,
+              port: document.getElementById('vpnPort').value
+            };
+            break;
+          case '3': // Server
+            ekBilgiler = {
+              ip_address: document.getElementById('serverIP').value,
+              os: document.getElementById('serverOS').value,
+              username: document.getElementById('serverKullaniciAdi').value,
+              password: document.getElementById('serverSifre').value
+            };
+            break;
+          case '4': // Application
+            ekBilgiler = {
+              url: document.getElementById('appURL').value,
+              version: document.getElementById('appVersiyon').value,
+              username: document.getElementById('appKullaniciAdi').value,
+              password: document.getElementById('appSifre').value
+            };
+            break;
+        }
+
+        console.log('Proje ID:', projeAdi);
+        console.log('Sistem Adı:', sistemAdi);
+        console.log('Sistem No:', sistemNo);
+        console.log('Sistem Tipi:', sistemTipi);
+        console.log('Ek Bilgiler:', ekBilgiler);
+
+        // AJAX request to add company
+        fetch('{% url "keychain:add_company" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            project_id: projeAdi,
+            name: sistemAdi,
+            number: sistemNo,
+            system_type: sistemTipi,
+            additional_info: ekBilgiler
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('AJAX Response:', data);
+          if (data.success) {
+            // Sayfayı yenile
+            location.reload();
+          } else {
+            console.error('Error adding system:', data.error || data.errors);
+            alert('Sistem eklenirken bir hata oluştu: ' + (data.error || 'Bilinmeyen hata'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Bağlantı hatası: ' + error.message);
+        });
+      }
+
+      // Sistem Güncelleme İşlemi
+      function sistemGuncelle() {
+        const sistemId = document.getElementById('duzenle_sistemId').value;
+        const projeAdi = document.getElementById('duzenle_projeAdi').value;
+        const sistemAdi = document.getElementById('duzenle_sistemAdi').value;
+        const sistemNo = document.getElementById('duzenle_sistemNo').value;
+        const sistemTipi = document.getElementById('duzenle_sistemTipi').value;
+        
+        // Validation
+        if (!projeAdi || !sistemAdi || !sistemNo || !sistemTipi || sistemTipi === '0') {
+          alert('Lütfen tüm alanları doldurunuz!');
+          return;
+        }
+        
+        // Ek alanları topla
+        let ekBilgiler = {};
+        
+        switch(sistemTipi) {
+          case '1': // Database
+            ekBilgiler = {
+              host: document.getElementById('duzenle_dbHost').value,
+              port: document.getElementById('duzenle_dbPort').value,
+              username: document.getElementById('duzenle_dbKullaniciAdi').value,
+              password: document.getElementById('duzenle_dbSifre').value
+            };
+            break;
+          case '2': // VPN
+            ekBilgiler = {
+              server: document.getElementById('duzenle_vpnServer').value,
+              username: document.getElementById('duzenle_vpnKullaniciAdi').value,
+              password: document.getElementById('duzenle_vpnSifre').value,
+              port: document.getElementById('duzenle_vpnPort').value
+            };
+            break;
+          case '3': // Server
+            ekBilgiler = {
+              ip_address: document.getElementById('duzenle_serverIP').value,
+              os: document.getElementById('duzenle_serverOS').value,
+              username: document.getElementById('duzenle_serverKullaniciAdi').value,
+              password: document.getElementById('duzenle_serverSifre').value
+            };
+            break;
+          case '4': // Application
+            ekBilgiler = {
+              url: document.getElementById('duzenle_appURL').value,
+              version: document.getElementById('duzenle_appVersiyon').value,
+              username: document.getElementById('duzenle_appKullaniciAdi').value,
+              password: document.getElementById('duzenle_appSifre').value
+            };
+            break;
+        }
+        
+        console.log('Güncelleme:', { id: sistemId, project_id: projeAdi, name: sistemAdi, number: sistemNo, system_type: sistemTipi, additional_info: ekBilgiler });
+        
+        // AJAX request to update company
+        fetch(`/keychain/update_company/${sistemId}/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            project_id: projeAdi,
+            name: sistemAdi,
+            number: sistemNo,
+            system_type: sistemTipi,
+            additional_info: ekBilgiler
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Modal'ı kapat ve sayfayı yenile
+            const modal = bootstrap.Modal.getInstance(document.getElementById('sistemDuzenleModal'));
+            modal.hide();
+            location.reload();
+          } else {
+            console.error('Error updating system:', data.error);
+            alert('Sistem güncellenirken bir hata oluştu: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Bağlantı hatası: ' + error.message);
+        });
+      }
+
+      // Sistem Silme İşlemi
+      function sistemSil() {
+        const sistemId = document.getElementById('sil_sistemId').value;
+        
+        console.log('Silme:', { id: sistemId });
+        
+        // AJAX request to delete company
+        fetch(`/keychain/delete_company/${sistemId}/`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Modal'ı kapat ve sayfayı yenile
+            const modal = bootstrap.Modal.getInstance(document.getElementById('sistemSilModal'));
+            modal.hide();
+            location.reload();
+          } else {
+            console.error('Error deleting system:', data.error);
+            alert('Sistem silinirken bir hata oluştu: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Bağlantı hatası: ' + error.message);
+        });
+      }
+
+      // Django CSRF token helper
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // Card hover effects
+      document.querySelectorAll('.system-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-5px)';
+          this.style.transition = 'all 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+        });
+      });
+
+      // Modal Temizleme Fonksiyonları
+      function modalTemizle() {
+        // Ekleme modal'ını temizle
+        document.getElementById('projeAdi').value = '';
+        document.getElementById('sistemTipi').value = '';
+        document.getElementById('sistemAdi').value = '';
+        document.getElementById('sistemNo').value = '';
+        
+        // Tüm ek alanları temizle ve gizle
+        document.getElementById('vpnAlanlari').style.display = 'none';
+        document.getElementById('databaseAlanlari').style.display = 'none';
+        document.getElementById('serverAlanlari').style.display = 'none';
+        document.getElementById('applicationAlanlari').style.display = 'none';
+        
+        // VPN alanları
+        document.getElementById('vpnServer').value = '';
+        document.getElementById('vpnKullaniciAdi').value = '';
+        document.getElementById('vpnSifre').value = '';
+        document.getElementById('vpnPort').value = '';
+        
+        // Database alanları
+        document.getElementById('dbHost').value = '';
+        document.getElementById('dbPort').value = '';
+        document.getElementById('dbKullaniciAdi').value = '';
+        document.getElementById('dbSifre').value = '';
+        
+        // Server alanları
+        document.getElementById('serverIP').value = '';
+        document.getElementById('serverOS').value = '';
+        document.getElementById('serverKullaniciAdi').value = '';
+        document.getElementById('serverSifre').value = '';
+        
+        // Application alanları
+        document.getElementById('appURL').value = '';
+        document.getElementById('appVersiyon').value = '';
+        document.getElementById('appKullaniciAdi').value = '';
+        document.getElementById('appSifre').value = '';
+      }
+
+      // Ek bilgileri gösterme fonksiyonu
+      function showAdditionalInfo(additionalInfo, sistemTipi) {
+        const detayEkBilgilerIcerik = document.getElementById('detay_ekBilgilerIcerik');
+        detayEkBilgilerIcerik.innerHTML = '';
+
+        let fieldsToShow = [];
+        
+        // Sistem tipine göre gösterilecek alanları belirle
+        switch(sistemTipi) {
+          case 'Database':
+            fieldsToShow = [
+              { key: 'host', label: 'Host', icon: 'fas fa-server' },
+              { key: 'port', label: 'Port', icon: 'fas fa-plug' },
+              { key: 'username', label: 'Kullanıcı Adı', icon: 'fas fa-user' },
+              { key: 'password', label: 'Şifre', icon: 'fas fa-key' }
+            ];
+            break;
+          case 'VPN':
+            fieldsToShow = [
+              { key: 'server', label: 'VPN Server', icon: 'fas fa-server' },
+              { key: 'port', label: 'Port', icon: 'fas fa-plug' },
+              { key: 'username', label: 'Kullanıcı Adı', icon: 'fas fa-user' },
+              { key: 'password', label: 'Şifre', icon: 'fas fa-key' }
+            ];
+            break;
+          case 'SERVER':
+            fieldsToShow = [
+              { key: 'ip_address', label: 'IP Adresi', icon: 'fas fa-network-wired' },
+              { key: 'os', label: 'İşletim Sistemi', icon: 'fas fa-desktop' },
+              { key: 'username', label: 'Kullanıcı Adı', icon: 'fas fa-user' },
+              { key: 'password', label: 'Şifre', icon: 'fas fa-key' }
+            ];
+            break;
+          case 'Application':
+            fieldsToShow = [
+              { key: 'url', label: 'URL', icon: 'fas fa-link' },
+              { key: 'version', label: 'Versiyon', icon: 'fas fa-code-branch' },
+              { key: 'username', label: 'Kullanıcı Adı', icon: 'fas fa-user' },
+              { key: 'password', label: 'Şifre', icon: 'fas fa-key' }
+            ];
+            break;
+        }
+
+        // Alanları oluştur ve göster
+        fieldsToShow.forEach(field => {
+          const value = additionalInfo[field.key] || '-';
+          
+          const colDiv = document.createElement('div');
+          colDiv.className = 'col-md-6 mb-3';
+          
+          colDiv.innerHTML = `
+            <div class="d-flex align-items-center mb-2">
+              <i class="${field.icon} text-primary me-2"></i>
+              <label class="form-label fw-medium text-muted mb-0">${field.label}</label>
+            </div>
+            <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
+              <span class="fw-bold text-dark" id="field-${field.key}">${value}</span>
+              ${value !== '-' ? `<button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('field-${field.key}')" title="Kopyala">
+                <i class="fas fa-copy"></i>
+              </button>` : ''}
+            </div>
+          `;
+          
+          detayEkBilgilerIcerik.appendChild(colDiv);
+        });
+
+        // Ek bilgileri göster
+        if (fieldsToShow.length > 0) {
+          document.getElementById('detay_ekBilgiler').style.display = 'block';
+        }
+      }
+
+      // Kopyalama fonksiyonu
+      function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const text = element.textContent;
+        
+        // Modern tarayıcılar için
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(() => {
+            showCopySuccess();
+          }).catch(err => {
+            console.error('Kopyalama hatası:', err);
+            fallbackCopyTextToClipboard(text);
+          });
+        } else {
+          // Eski tarayıcılar için fallback
+          fallbackCopyTextToClipboard(text);
+        }
+      }
+
+      // Fallback kopyalama fonksiyonu
+      function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // Görünmez hale getir
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            showCopySuccess();
+          } else {
+            console.error('Kopyalama başarısız');
+          }
+        } catch (err) {
+          console.error('Kopyalama hatası:', err);
+        }
+        
+        document.body.removeChild(textArea);
+      }
+
+      // Başarılı kopyalama mesajı
+      function showCopySuccess() {
+        // Toast mesajı oluştur
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.innerHTML = `
+          <div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999;">
+            <i class="fas fa-check-circle me-2"></i>
+            Panoya kopyalandı!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // 3 saniye sonra otomatik kaldır
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 3000);
+      }
+    </script>
+
+    <style>
+      .system-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      
+      .system-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+      }
+      
+      .system-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 15px;
+      }
+      
+      .language-selector img {
+        width: 24px;
+        height: auto;
+        margin: 0 5px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+      }
+      
+      .language-selector img:hover,
+      .language-selector img.active {
+        opacity: 1;
+      }
+    </style>
+  </body>
+</html>

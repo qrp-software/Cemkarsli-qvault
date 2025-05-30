@@ -1,0 +1,37 @@
+{% extends "users/base.html" %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Giriş Yap" %}
+{% endblock title %}
+
+{% block content_users %}
+
+    <form method="POST" class="form">
+        {% csrf_token %}
+
+        <h2 class="card-title text-center">{% trans 'Giriş Yap' %}</h2>
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                <p>{{ form.non_field_errors }}</p>
+            </div>
+        {% endif %}
+
+        {% include "tools/form-group.html" with field=form.username %}
+
+        {% include "tools/form-group.html" with field=form.password %}
+
+        <div class="text-center">
+            <button class="btn btn-success btn-block" type="submit">{% trans 'Giriş Yap' %}</button>
+        </div>
+
+        <p class="mt-3">
+            {% trans "Üyeliğiniz yok mu?" %} <a href="{% url 'users:signup' %}">{% trans "Yeni üyelik oluştur" %}</a>
+        </p>
+
+        <p class="mt-3">
+            {% trans "Şifrenizi mi unuttunuz?" %} <a
+                href="{% url 'users:password_reset' %}">{% trans "Şifrenizi sıfırlayın" %}</a>
+        </p>
+    </form>
+{% endblock %}

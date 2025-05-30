@@ -1,0 +1,658 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firmalar</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'keychain/css/index.css' %}" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow border-0 py-3">
+      <div class="container-fluid px-4">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-light btn-sm rounded-3 border-0 shadow-sm d-md-none me-3" id="sidebarToggle">
+            <i class="fas fa-bars fs-5 text-secondary"></i>
+          </button>
+          <a href="#" class="navbar-brand d-flex align-items-center gap-2 text-decoration-none">
+            <img src="{% static 'keychain/images/qrplogo.jpg' %}" alt="QRP Logo" style="height: 30px;">
+          </a>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="language-selector d-none d-md-flex">
+            <img
+              src="https://flagcdn.com/w40/tr.png"
+              title="Türkçe"
+              class="active"
+            />
+            <img src="https://flagcdn.com/w40/gb.png" title="English" />
+          </div>
+
+          <!-- Kullanıcı Menüsü -->
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+              <div class="bg-white bg-opacity-25 rounded-circle p-1">
+                <i class="fas fa-user-circle fs-5 text-white"></i>
+              </div>
+              <span class="d-none d-md-inline fw-medium">{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</span>
+              <i class="fas fa-chevron-down small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="#">
+                  <i class="fas fa-cog text-primary"></i>
+                  <span>Ayarlar</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="#">
+                  <i class="fas fa-question-circle text-primary"></i>
+                  <span>Yardım</span>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider my-2"></li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded text-danger" href="#">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Çıkış Yap</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar bg-dark">
+      <ul class="nav flex-column pt-3" role="navigation">
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link" href="{% url 'keychain:home' %}">
+            <i class="fas fa-home fs-5"></i><span>Anasayfa</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link active" href="{% url 'keychain:project_list' %}">
+           <i class="fas fa-list-ul fs-5"></i><span>Proje Listeleri</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link" href="{% url 'keychain:sistem_list' %}">
+            <i class="fas fa-cogs fs-5"></i><span>Sistemler</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Sidebar overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <div class="main-content bg-light">
+      <div class="container-fluid px-4 py-5">
+        <!-- Başlık ve Buton -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+          <div>
+            <h2 class="fw-bold text-dark mb-1 display-6">
+              <i class="fas fa-building text-primary me-2"></i>Proje Listeleri
+            </h2>
+            <p class="text-muted mb-0">Sistemde kayıtlı proje listelerini yönetin</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#projeEkleModal">
+            <i class="fas fa-plus-circle me-2"></i>Proje Ekle
+          </button>
+        </div>
+
+        <!-- Projeler Tablosu -->
+        <div class="card shadow border-0 rounded-4">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th class="px-4 py-3 text-secondary fw-semibold border-0">ID</th>
+                    <th class="px-4 py-3 text-secondary fw-semibold border-0">Proje Kodu</th>
+                    <th class="px-4 py-3 text-secondary fw-semibold border-0">Proje Adı</th>
+                    <th class="px-4 py-3 text-secondary fw-semibold border-0">Sistem Tipi</th>
+                    <th class="px-4 py-3 text-secondary fw-semibold border-0">Açıklama</th>
+                    <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Eylemler</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for project in projects %}
+                  <tr>
+                    <td class="px-4 py-4 fw-medium">{{ project.id }}</td>
+                    <td class="px-4 py-4 fw-medium">{{ project.code }}</td>
+                    <td class="px-4 py-4 fw-medium">{{ project.name }}</td>
+                    <td class="px-4 py-4 text-muted">
+                      {% if project.system_type == "1" %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill">
+                          <i class="fas fa-database me-1"></i>Database
+                        </span>
+                      {% elif project.system_type == "2" %}
+                        <span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill">
+                          <i class="fas fa-shield-alt me-1"></i>VPN
+                        </span>
+                      {% elif project.system_type == "3" %}
+                        <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill">
+                          <i class="fas fa-server me-1"></i>Server
+                        </span>
+                      {% elif project.system_type == "4" %}
+                        <span class="badge bg-info bg-opacity-10 text-info px-2 py-1 rounded-pill">
+                          <i class="fas fa-desktop me-1"></i>Application
+                        </span>
+                      {% else %}
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill">
+                          <i class="fas fa-cog me-1"></i>{{ project.system_type|default:"Belirtilmemiş" }}
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-4 text-muted">{{ project.description|truncatewords:10 }}</td>
+                    <td class="px-4 py-4 text-center">
+                      <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#projeDuzenleModal"
+                                data-id="{{ project.id }}"
+                                data-code="{{ project.code }}"
+                                data-name="{{ project.name }}"
+                                data-description="{{ project.description }}"
+                                data-system-type="{{ project.system_type }}">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-end-3 px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#projeSilModal"
+                                data-id="{{ project.id }}"
+                                data-name="{{ project.name }}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proje Ekle Modal -->
+    <div class="modal fade" id="projeEkleModal" tabindex="-1" aria-labelledby="projeEkleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-primary bg-opacity-10">
+            <h5 class="modal-title fw-bold text-primary" id="projeEkleModalLabel">
+              <i class="fas fa-plus-circle me-2"></i>Yeni Proje Ekle
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="projeKodu" class="form-label fw-medium">Proje Kodu</label>
+                  <input type="text" class="form-control" id="projeKodu" placeholder="Proje kodunu giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="projeAdi" class="form-label fw-medium">Proje Adı</label>
+                  <input type="text" class="form-control" id="projeAdi" placeholder="Proje adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="sistemTipi" class="form-label fw-medium">Sistem Tipi</label>
+                  <select class="form-select" id="sistemTipi">
+                    <option value="">Seçiniz</option>
+                    <option value="1">Database</option>
+                    <option value="2">VPN</option>
+                    <option value="3">SERVER</option>
+                    <option value="4">Application</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="projeAciklama" class="form-label fw-medium">Açıklama</label>
+                  <textarea class="form-control" id="projeAciklama" rows="3" placeholder="Proje açıklamasını giriniz"></textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-primary" onclick="projeEkle()">
+              <i class="fas fa-save me-2"></i>Kaydet
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proje Düzenle Modal -->
+    <div class="modal fade" id="projeDuzenleModal" tabindex="-1" aria-labelledby="projeDuzenleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-primary bg-opacity-10">
+            <h5 class="modal-title fw-bold text-primary" id="projeDuzenleModalLabel">
+              <i class="fas fa-edit me-2"></i>Proje Düzenle
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="duzenleForm">
+              <input type="hidden" id="duzenle_projeId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="duzenle_projeKodu" class="form-label fw-medium">Proje Kodu</label>
+                  <input type="text" class="form-control" id="duzenle_projeKodu" placeholder="Proje kodunu giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_projeAdi" class="form-label fw-medium">Proje Adı</label>
+                  <input type="text" class="form-control" id="duzenle_projeAdi" placeholder="Proje adını giriniz">
+                </div>
+                <div class="col-md-6">
+                  <label for="duzenle_sistemTipi" class="form-label fw-medium">Sistem Tipi</label>
+                  <select class="form-select" id="duzenle_sistemTipi">
+                    <option value="">Seçiniz</option>
+                    <option value="1">Database</option>
+                    <option value="2">VPN</option>
+                    <option value="3">SERVER</option>
+                    <option value="4">Application</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="duzenle_projeAciklama" class="form-label fw-medium">Açıklama</label>
+                  <textarea class="form-control" id="duzenle_projeAciklama" rows="3" placeholder="Proje açıklamasını giriniz"></textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-primary" onclick="projeGuncelle()">
+              <i class="fas fa-save me-2"></i>Güncelle
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proje Sil Modal -->
+    <div class="modal fade" id="projeSilModal" tabindex="-1" aria-labelledby="projeSilModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header border-0 bg-danger bg-opacity-10">
+            <h5 class="modal-title fw-bold text-danger" id="projeSilModalLabel">
+              <i class="fas fa-exclamation-triangle me-2"></i>Proje Sil
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="sil_projeId">
+            <p class="mb-3">Aşağıdaki projeyi silmek istediğinizden emin misiniz?</p>
+            <div class="alert alert-light border">
+              <h6 class="mb-1 fw-bold" id="sil_projeAdi"></h6>
+              <small class="text-muted">Bu işlem geri alınamaz!</small>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+            <button type="button" class="btn btn-danger" onclick="projeSil()">
+              <i class="fas fa-trash me-2"></i>Sil
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+      // Mobile menu toggle functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const menuToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        
+        if (menuToggle && sidebar) {
+          menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+          });
+
+          // Close sidebar when clicking overlay
+          if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+              sidebar.classList.remove('show');
+              sidebarOverlay.classList.remove('show');
+            });
+          }
+
+          // Close sidebar when clicking on a nav link (mobile)
+          const navLinks = sidebar.querySelectorAll('.nav-link');
+          navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+              if (window.innerWidth <= 768) {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+              }
+            });
+          });
+        }
+
+        // Proje Düzenle Modal
+        const projeDuzenleModal = document.getElementById('projeDuzenleModal');
+        if (projeDuzenleModal) {
+          projeDuzenleModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const projeId = button.getAttribute('data-id');
+            const projeKodu = button.getAttribute('data-code');
+            const projeAdi = button.getAttribute('data-name');
+            const projeAciklama = button.getAttribute('data-description');
+            const sistemTipi = button.getAttribute('data-system-type');
+            
+            document.getElementById('duzenle_projeId').value = projeId;
+            document.getElementById('duzenle_projeKodu').value = projeKodu;
+            document.getElementById('duzenle_projeAdi').value = projeAdi;
+            document.getElementById('duzenle_projeAciklama').value = projeAciklama;
+            document.getElementById('duzenle_sistemTipi').value = sistemTipi;
+          });
+        }
+
+        // Proje Sil Modal
+        const projeSilModal = document.getElementById('projeSilModal');
+        if (projeSilModal) {
+          projeSilModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const projeId = button.getAttribute('data-id');
+            const projeAdi = button.getAttribute('data-name');
+            
+            document.getElementById('sil_projeId').value = projeId;
+            document.getElementById('sil_projeAdi').textContent = projeAdi;
+          });
+        }
+      });
+
+      // Django CSRF token helper
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // Proje Ekleme İşlemi
+      function projeEkle() {
+        const projeKodu = document.getElementById('projeKodu').value;
+        const projeAdi = document.getElementById('projeAdi').value;
+        const projeAciklama = document.getElementById('projeAciklama').value;
+        const sistemTipi = document.getElementById('sistemTipi').value;
+
+        // Check if fields are empty
+        if (!projeKodu || !projeAdi) {
+          console.error('Proje kodu ve adı gereklidir.');
+          alert('Lütfen proje kodu ve adını doldurunuz!');
+          return;
+        }
+
+        console.log('Proje Kodu:', projeKodu);
+        console.log('Proje Adı:', projeAdi);
+        console.log('Proje Açıklama:', projeAciklama);
+        console.log('Sistem Tipi:', sistemTipi);
+
+        // AJAX request to add project
+        fetch('{% url "keychain:add_project" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            code: projeKodu,
+            name: projeAdi,
+            description: projeAciklama,
+            system_type: sistemTipi
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('AJAX Response:', data);
+          if (data.success) {
+            // Sistem tipi badge'ini oluştur
+            let systemTypeBadge = '';
+            if (data.system_type === 'Database') {
+              systemTypeBadge = '<span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill"><i class="fas fa-database me-1"></i>Database</span>';
+            } else if (data.system_type === 'VPN') {
+              systemTypeBadge = '<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill"><i class="fas fa-shield-alt me-1"></i>VPN</span>';
+            } else if (data.system_type === 'SERVER') {
+              systemTypeBadge = '<span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill"><i class="fas fa-server me-1"></i>Server</span>';
+            } else if (data.system_type === 'Application') {
+              systemTypeBadge = '<span class="badge bg-info bg-opacity-10 text-info px-2 py-1 rounded-pill"><i class="fas fa-desktop me-1"></i>Application</span>';
+            } else {
+              systemTypeBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill"><i class="fas fa-cog me-1"></i>Belirtilmemiş</span>';
+            }
+
+            // Create a new row
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+              <td class="px-4 py-4 fw-medium">${data.id}</td>
+              <td class="px-4 py-4 fw-medium">${data.code}</td>
+              <td class="px-4 py-4 fw-medium">${data.name}</td>
+              <td class="px-4 py-4 text-muted">${systemTypeBadge}</td>
+              <td class="px-4 py-4 text-muted">${data.description}</td>
+              <td class="px-4 py-4 text-center">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#projeDuzenleModal"
+                          data-id="${data.id}"
+                          data-code="${data.code}"
+                          data-name="${data.name}"
+                          data-description="${data.description}"
+                          data-system-type="${sistemTipi}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rounded-end-3 px-3"
+                          data-bs-toggle="modal"
+                          data-bs-target="#projeSilModal"
+                          data-id="${data.id}"
+                          data-name="${data.name}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            `;
+
+            // Append the new row to the table body
+            const tableBody = document.querySelector('table tbody');
+            tableBody.appendChild(newRow);
+
+            // Form alanlarını temizle
+            document.getElementById('projeKodu').value = '';
+            document.getElementById('projeAdi').value = '';
+            document.getElementById('projeAciklama').value = '';
+            document.getElementById('sistemTipi').value = '';
+
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('projeEkleModal'));
+            modal.hide();
+            
+            // Başarı mesajı göster
+            console.log('Proje başarıyla eklendi!');
+          } else {
+            console.error('Error adding project:', data.error || data.errors);
+            alert('Proje eklenirken bir hata oluştu: ' + (data.error || 'Bilinmeyen hata'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Bağlantı hatası: ' + error.message);
+        });
+      }
+
+      // Proje Güncelleme İşlemi
+      function projeGuncelle() {
+        const projeId = document.getElementById('duzenle_projeId').value;
+        const projeKodu = document.getElementById('duzenle_projeKodu').value;
+        const projeAdi = document.getElementById('duzenle_projeAdi').value;
+        const projeAciklama = document.getElementById('duzenle_projeAciklama').value;
+        const sistemTipi = document.getElementById('duzenle_sistemTipi').value;
+        
+        // Validation
+        if (!projeKodu || !projeAdi) {
+          alert('Lütfen proje kodu ve adını doldurunuz!');
+          return;
+        }
+        
+        console.log('Güncelleme:', { id: projeId, code: projeKodu, name: projeAdi, description: projeAciklama, system_type: sistemTipi });
+        
+        // AJAX request to update project
+        fetch(`/keychain/update_project/${projeId}/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            code: projeKodu,
+            name: projeAdi,
+            description: projeAciklama,
+            system_type: sistemTipi
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Sistem tipi badge'ini oluştur
+            let systemTypeBadge = '';
+            if (data.system_type === 'Database') {
+              systemTypeBadge = '<span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill"><i class="fas fa-database me-1"></i>Database</span>';
+            } else if (data.system_type === 'VPN') {
+              systemTypeBadge = '<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill"><i class="fas fa-shield-alt me-1"></i>VPN</span>';
+            } else if (data.system_type === 'SERVER') {
+              systemTypeBadge = '<span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill"><i class="fas fa-server me-1"></i>Server</span>';
+            } else if (data.system_type === 'Application') {
+              systemTypeBadge = '<span class="badge bg-info bg-opacity-10 text-info px-2 py-1 rounded-pill"><i class="fas fa-desktop me-1"></i>Application</span>';
+            } else {
+              systemTypeBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill"><i class="fas fa-cog me-1"></i>Belirtilmemiş</span>';
+            }
+
+            // Tabloyu güncelle
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(row => {
+              const idCell = row.querySelector('td:first-child');
+              if (idCell && idCell.textContent.trim() === projeId) {
+                // Satırı güncelle
+                row.innerHTML = `
+                  <td class="px-4 py-4 fw-medium">${data.id}</td>
+                  <td class="px-4 py-4 fw-medium">${data.code}</td>
+                  <td class="px-4 py-4 fw-medium">${data.name}</td>
+                  <td class="px-4 py-4 text-muted">${systemTypeBadge}</td>
+                  <td class="px-4 py-4 text-muted">${data.description}</td>
+                  <td class="px-4 py-4 text-center">
+                    <div class="btn-group" role="group">
+                      <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#projeDuzenleModal"
+                              data-id="${data.id}"
+                              data-code="${data.code}"
+                              data-name="${data.name}"
+                              data-description="${data.description}"
+                              data-system-type="${sistemTipi}">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger rounded-end-3 px-3"
+                              data-bs-toggle="modal"
+                              data-bs-target="#projeSilModal"
+                              data-id="${data.id}"
+                              data-name="${data.name}">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                `;
+              }
+            });
+            
+            // Modal'ı kapat
+            const modal = bootstrap.Modal.getInstance(document.getElementById('projeDuzenleModal'));
+            modal.hide();
+            
+            console.log('Proje başarıyla güncellendi!');
+          } else {
+            console.error('Error updating project:', data.error);
+            alert('Proje güncellenirken bir hata oluştu: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Bağlantı hatası: ' + error.message);
+        });
+      }
+
+      // Proje Silme İşlemi
+      function projeSil() {
+        const projeId = document.getElementById('sil_projeId').value;
+        
+        console.log('Silme:', { id: projeId });
+        
+        // AJAX request to delete project
+        fetch(`/keychain/delete_project/${projeId}/`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Tablodan satırı kaldır
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(row => {
+              const idCell = row.querySelector('td:first-child');
+              if (idCell && idCell.textContent.trim() === projeId) {
+                row.remove();
+              }
+            });
+            
+            // Modal'ı kapat
+            const modal = bootstrap.Modal.getInstance(document.getElementById('projeSilModal'));
+            modal.hide();
+            
+            console.log('Proje başarıyla silindi!');
+          } else {
+            console.error('Error deleting project:', data.error);
+            alert('Proje silinirken bir hata oluştu: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Bağlantı hatası: ' + error.message);
+        });
+      }
+    </script>
+  </body>
+</html>
