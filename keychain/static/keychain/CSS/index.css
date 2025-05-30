@@ -45,7 +45,9 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 15px 40px rgba(139, 92, 246, 0.5);
 }
-
+ .cem{
+  background-color: #8b5cf6;
+ }
 /* Navbar özelleştirmeleri */
 .navbar {
   height: 70px;
