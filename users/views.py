@@ -26,26 +26,6 @@ class LogoutView(BaseLogoutView):
     pass
 
 
-class SignUp(View):
-    template_name = "users/signup.html"
-
-    def get(self, request):
-        form = forms.UserCreationForm()
-        return render(request, self.template_name, {"form": form})
-
-    def post(self, request):
-        form = forms.UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = True
-            user.save()
-
-            login(request, user)
-
-            return redirect(reverse("welcome"))
-        return render(request, self.template_name, {"form": form})
-
-
 class EditUserInfoView(LoginRequiredMixin, View):
     template_name = "users/edit_user_info.html"
     form_class = forms.EditUserForm

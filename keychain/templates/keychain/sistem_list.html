@@ -562,29 +562,30 @@
                     <div class="row g-3">
                       <div class="col-md-6">
                         <label class="form-label fw-medium text-muted">Sistem Adı</label>
+                        <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_sistemAdi')" title="Kopyala">
+                          <i class="fas fa-copy"></i>
+                        </button>
                         <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                           <p class="mb-0 fw-bold" id="detay_sistemAdi">-</p>
-                          <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_sistemAdi')" title="Kopyala">
-                            <i class="fas fa-copy"></i>
-                          </button>
                         </div>
                       </div>
                       <div class="col-md-6">
                         <label class="form-label fw-medium text-muted">Sistem No</label>
+                        <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_sistemNo')" title="Kopyala">
+                          <i class="fas fa-copy"></i>
+                        </button>
                         <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                           <p class="mb-0 fw-bold" id="detay_sistemNo">-</p>
-                          <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_sistemNo')" title="Kopyala">
-                            <i class="fas fa-copy"></i>
-                          </button>
+                      
                         </div>
                       </div>
                       <div class="col-md-6">
                         <label class="form-label fw-medium text-muted">Proje</label>
+                        <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_projeAdi')" title="Kopyala">
+                          <i class="fas fa-copy"></i>
+                        </button>
                         <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                           <p class="mb-0 fw-bold" id="detay_projeAdi">-</p>
-                          <button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('detay_projeAdi')" title="Kopyala">
-                            <i class="fas fa-copy"></i>
-                          </button>
                         </div>
                       </div>
                       <div class="col-md-6">
@@ -1232,12 +1233,13 @@
             <div class="d-flex align-items-center mb-2">
               <i class="${field.icon} text-primary me-2"></i>
               <label class="form-label fw-medium text-muted mb-0">${field.label}</label>
+                   ${value !== '-' ? `<button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('field-${field.key}')" title="Kopyala">
+                <i class="fas fa-copy"></i>
+              </button>` : ''}
             </div>
             <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
               <span class="fw-bold text-dark" id="field-${field.key}">${value}</span>
-              ${value !== '-' ? `<button class="btn btn-outline-primary btn-sm ms-2" onclick="copyToClipboard('field-${field.key}')" title="Kopyala">
-                <i class="fas fa-copy"></i>
-              </button>` : ''}
+         
             </div>
           `;
           
