@@ -104,4 +104,27 @@
 
 .user-list::-webkit-scrollbar-thumb:hover {
   background: #0a58ca;
+}
+
+/* Sharing badges */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.badge i {
+  font-size: 0.7rem;
+}
+
+/* Ensure badges don't wrap */
+.d-flex.align-items-center.gap-2 {
+  flex-wrap: nowrap;
+  white-space: nowrap;
 } 
