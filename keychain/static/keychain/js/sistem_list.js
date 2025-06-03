@@ -360,7 +360,10 @@ function showSystemDetails(systemId) {
                 <i class="fas fa-copy"></i>
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
-                <p class="mb-0 fw-bold" id="detay_dbPassword">${data.password || '-'}</p>
+                <p class="mb-0 fw-bold" id="detay_dbPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_dbPassword', '${data.password || '-'}')">
+                  <i class="fas fa-eye"></i>
+                </button>
               </div>
             </div>
           `;
@@ -399,7 +402,10 @@ function showSystemDetails(systemId) {
                 <i class="fas fa-copy"></i>
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
-                <p class="mb-0 fw-bold" id="detay_vpnPassword">${data.password || '-'}</p>
+                <p class="mb-0 fw-bold" id="detay_vpnPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_vpnPassword', '${data.password || '-'}')">
+                  <i class="fas fa-eye"></i>
+                </button>
               </div>
             </div>
           `;
@@ -438,7 +444,10 @@ function showSystemDetails(systemId) {
                 <i class="fas fa-copy"></i>
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
-                <p class="mb-0 fw-bold" id="detay_serverPassword">${data.password || '-'}</p>
+                <p class="mb-0 fw-bold" id="detay_serverPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_serverPassword', '${data.password || '-'}')">
+                  <i class="fas fa-eye"></i>
+                </button>
               </div>
             </div>
           `;
@@ -477,7 +486,10 @@ function showSystemDetails(systemId) {
                 <i class="fas fa-copy"></i>
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
-                <p class="mb-0 fw-bold" id="detay_appPassword">${data.password || '-'}</p>
+                <p class="mb-0 fw-bold" id="detay_appPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_appPassword', '${data.password || '-'}')">
+                  <i class="fas fa-eye"></i>
+                </button>
               </div>
             </div>
           `;
@@ -514,30 +526,126 @@ function showSystemDetails(systemId) {
     });
 }
 
-// Detay butonuna tıklandığında
-document.addEventListener('DOMContentLoaded', function() {
-  const detailButtons = document.querySelectorAll('[data-bs-target="#sistemDetayModal"]');
-  detailButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Butonun data-id özelliğini kontrol et
-      const systemId = this.getAttribute('data-id');
-      if (!systemId) {
-        console.error('Sistem ID bulunamadı');
+// Şifre görünürlüğünü değiştiren fonksiyon
+function togglePasswordVisibility(elementId, password) {
+  const passwordElement = document.getElementById(elementId);
+  const icon = passwordElement.nextElementSibling.querySelector('i');
+  
+  if (passwordElement.textContent === password) {
+    passwordElement.textContent = '*'.repeat(password.length);
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  } else {
+    passwordElement.textContent = password;
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  }
+}
+
+// Function to open system detail modal
+function openSystemDetail(event, id, name, number, systemType, projectName) {
+    // Prevent click if clicking on dropdown or buttons
+    if (event.target.closest('.dropdown') || event.target.closest('.btn-group')) {
         return;
-      }
-      
-      // Modal'ı göster
-      const modalElement = document.getElementById('sistemDetayModal');
-      if (!modalElement) {
-        console.error('Modal elementi bulunamadı');
-        return;
-      }
-      
-      // Sistem detaylarını getir
-      showSystemDetails(systemId);
+    }
+
+    // Use showSystemDetails to get full system information
+    showSystemDetails(id);
+}
+
+// Function to copy text to clipboard
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        // Show a temporary success message
+        const originalText = document.getElementById(elementId).textContent;
+        document.getElementById(elementId).textContent = 'Kopyalandı!';
+        setTimeout(() => {
+            document.getElementById(elementId).textContent = originalText;
+        }, 1000);
     });
-  });
+}
+
+// Function to toggle password visibility
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Function to clear search
+function clearSearch() {
+    document.getElementById('systemSearch').value = '';
+    filterSystems();
+}
+
+// Function to filter systems
+function filterSystems() {
+    const searchText = document.getElementById('systemSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('.system-card');
+    const clearButton = document.querySelector('.search-clear');
+    
+    // Show/hide clear button based on search text
+    clearButton.style.display = searchText ? 'block' : 'none';
+    
+    cards.forEach(card => {
+        const systemName = card.querySelector('.card-title').textContent.toLowerCase();
+        const systemNumber = card.querySelector('.text-muted:nth-of-type(2)').textContent.toLowerCase();
+        const projectName = card.querySelector('.text-muted:nth-of-type(1)')?.textContent.toLowerCase() || '';
+        
+        if (systemName.includes(searchText) || 
+            systemNumber.includes(searchText) || 
+            projectName.includes(searchText)) {
+            card.closest('.col-xl-3').style.display = '';
+        } else {
+            card.closest('.col-xl-3').style.display = 'none';
+        }
+    });
+}
+
+// Add event listeners when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add click event listeners to filter buttons
+    document.querySelectorAll('[data-filter]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('[data-filter]').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-light');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            this.classList.remove('btn-light');
+            this.classList.add('btn-primary');
+            
+            const filter = this.getAttribute('data-filter');
+            const cards = document.querySelectorAll('.system-card');
+            
+            cards.forEach(card => {
+                const systemType = card.querySelector('.system-type-badge').textContent.trim();
+                if (filter === 'all' || systemType.includes(filter)) {
+                    card.closest('.col-xl-3').style.display = '';
+                } else {
+                    card.closest('.col-xl-3').style.display = 'none';
+                }
+            });
+        });
+    });
 }); 
