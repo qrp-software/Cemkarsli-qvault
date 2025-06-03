@@ -30,70 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Sistem kartlarına tıklama olayı
-  const systemCards = document.querySelectorAll('.system-card');
-  systemCards.forEach(card => {
-    card.addEventListener('click', function(e) {
-      // Eğer tıklanan element dropdown menüsü veya dropdown menüsünün içindeki bir element ise
-      if (e.target.closest('.dropdown')) {
-        return; // İşlemi durdur
-      }
-      
-      // Sistem ID'sini al
-      const systemId = this.dataset.systemId;
-      
-      // Backend'den sistem detaylarını çek
-      fetch(`/keychain/get_company_details/${systemId}/`, {
-        method: 'GET',
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken')
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Temel bilgileri doldur
-          document.getElementById('detay_sistemAdi').textContent = data.name || '-';
-          document.getElementById('detay_sistemNo').textContent = data.number || '-';
-          document.getElementById('detay_projeAdi').textContent = data.project_name || '-';
-          
-          // Sistem tipi badge'ini oluştur
-          let sistemTipiBadge = '';
-          switch(data.system_type) {
-            case 'Database':
-              sistemTipiBadge = '<span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><i class="fas fa-database me-1"></i>Database</span>';
-              break;
-            case 'VPN':
-              sistemTipiBadge = '<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-shield-alt me-1"></i>VPN</span>';
-              break;
-            case 'SERVER':
-              sistemTipiBadge = '<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><i class="fas fa-server me-1"></i>Server</span>';
-              break;
-            case 'Application':
-              sistemTipiBadge = '<span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill"><i class="fas fa-desktop me-1"></i>Application</span>';
-              break;
-            default:
-              sistemTipiBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill"><i class="fas fa-cog me-1"></i>' + data.system_type + '</span>';
-          }
-          document.getElementById('detay_sistemTipi').innerHTML = sistemTipiBadge;
-          
-          // Ek bilgileri göster
-          showAdditionalInfo(data.additional_info || {}, data.system_type);
-          
-          // Modalı göster
-          const detailModal = new bootstrap.Modal(document.getElementById('sistemDetayModal'));
-          detailModal.show();
-        } else {
-          console.error('Error fetching system details:', data.error);
-          alert('Sistem detayları yüklenirken bir hata oluştu: ' + data.error);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Bağlantı hatası: ' + error.message);
-      });
-    });
-  });
+  // Sistem kartlarına tıklama olayını kaldırıyoruz çünkü sistem_list.js'de yönetiliyor
 
   // Proje Düzenle Modal
   const projeDuzenleModal = document.getElementById('projeDuzenleModal');
@@ -236,57 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Sistem Detay Modal
   const sistemDetayModal = document.getElementById('sistemDetayModal');
   if (sistemDetayModal) {
-    sistemDetayModal.addEventListener('show.bs.modal', function (event) {
-      const button = event.relatedTarget;
-      const sistemId = button.getAttribute('data-id');
-      
-      // Backend'den sistem detaylarını çek
-      fetch(`/keychain/get_company_details/${sistemId}/`, {
-        method: 'GET',
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken')
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Temel bilgileri doldur
-          document.getElementById('detay_sistemAdi').textContent = data.name || '-';
-          document.getElementById('detay_sistemNo').textContent = data.number || '-';
-          document.getElementById('detay_projeAdi').textContent = data.project_name || '-';
-          
-          // Sistem tipi badge'ini oluştur
-          let sistemTipiBadge = '';
-          switch(data.system_type) {
-            case 'Database':
-              sistemTipiBadge = '<span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><i class="fas fa-database me-1"></i>Database</span>';
-              break;
-            case 'VPN':
-              sistemTipiBadge = '<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-shield-alt me-1"></i>VPN</span>';
-              break;
-            case 'SERVER':
-              sistemTipiBadge = '<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><i class="fas fa-server me-1"></i>Server</span>';
-              break;
-            case 'Application':
-              sistemTipiBadge = '<span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill"><i class="fas fa-desktop me-1"></i>Application</span>';
-              break;
-            default:
-              sistemTipiBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill"><i class="fas fa-cog me-1"></i>' + data.system_type + '</span>';
-          }
-          document.getElementById('detay_sistemTipi').innerHTML = sistemTipiBadge;
-          
-          // Ek bilgileri göster
-          showAdditionalInfo(data.additional_info || {}, data.system_type);
-        } else {
-          console.error('Error fetching system details:', data.error);
-          alert('Sistem detayları yüklenirken bir hata oluştu: ' + data.error);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Bağlantı hatası: ' + error.message);
-      });
-    });
+    // Modal işlemlerini sistem_list.js'e bırakıyoruz
+    // Bu kısmı kaldırıyoruz
   }
 });
 

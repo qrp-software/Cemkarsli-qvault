@@ -58,3 +58,17 @@ class Company(models.Model):
     users = models.ManyToManyField(User, related_name="companies")
     def __str__(self):
         return self.name
+
+
+class SystemShare(models.Model):
+    system = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='shares')
+    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_systems')
+    shared_with = models.ManyToManyField(User, related_name='shared_systems_with_me', blank=True)
+    is_public = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('system', 'shared_by')
+
+    def __str__(self):
+        return f"{self.system.name} shared by {self.shared_by.username}"

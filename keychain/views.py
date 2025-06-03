@@ -3,12 +3,16 @@ from django.views.generic import ListView, DetailView, CreateView, View, Templat
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Project, Company
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .models import Project, Company, SystemShare
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponseRedirect, JsonResponse
 from .forms import ProjectForm, CompanyForm
 import json
+from users.models import User
+from django.db import models
 
 # Constants
 SYSTEM_TYPE_CHOICES = {
@@ -118,12 +122,23 @@ class SistemListView(LoginRequiredMixin, ListView):
     context_object_name = "systems"
 
     def get_queryset(self):
-        return self.request.user.companies.all()
+        user = self.request.user
+        # Kullanıcının kendi sistemleri
+        own_systems = user.companies.all()
+        # Kullanıcıyla paylaşılan sistemler
+        shared_systems = Company.objects.filter(
+            shares__shared_with=user
+        ).exclude(owner=user)
+        # Herkese açık sistemler
+        public_systems = Company.objects.filter(
+            shares__is_public=True
+        ).exclude(owner=user).exclude(id__in=shared_systems)
+        
+        return (own_systems | shared_systems | public_systems).distinct()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = CompanyForm()
-        # Kullanıcının projelerini context'e ekle
         context["projects"] = self.request.user.projects.all()
         return context
 
@@ -284,17 +299,118 @@ class CompanyDeleteAPIView(LoginRequiredMixin, View):
 class CompanyDetailAPIView(LoginRequiredMixin, View):
     def get(self, request, company_id):
         try:
-            company = request.user.companies.get(id=company_id)
+            # Önce kullanıcının kendi sistemlerinde ara
+            try:
+                company = request.user.companies.get(id=company_id)
+            except Company.DoesNotExist:
+                # Kendi sistemlerinde yoksa, paylaşılan sistemlerde ara
+                company = Company.objects.filter(
+                    models.Q(shares__shared_with=request.user) |  # Kullanıcıyla paylaşılan
+                    models.Q(shares__is_public=True)  # Herkese açık
+                ).get(id=company_id)
+
+            # Sistem tipine göre ek bilgileri hazırla
+            additional_info = company.additional_info or {}
+            system_type = get_system_type_label(company.system_type)
             
-            return create_success_response({
+            # Sistem tipine göre detaylı bilgileri ekle
+            detailed_info = {
                 'id': company.id,
                 'project_name': company.project.name if company.project else '',
                 'name': company.name,
                 'number': company.number,
-                'system_type': get_system_type_label(company.system_type),
-                'additional_info': company.additional_info
+                'system_type': system_type,
+                'additional_info': additional_info
+            }
+
+            # Sistem tipine göre özel alanları ekle
+            if system_type == 'Database':
+                detailed_info.update({
+                    'host': additional_info.get('host', ''),
+                    'port': additional_info.get('port', ''),
+                    'username': additional_info.get('username', ''),
+                    'password': additional_info.get('password', '')
+                })
+            elif system_type == 'VPN':
+                detailed_info.update({
+                    'server': additional_info.get('server', ''),
+                    'port': additional_info.get('port', ''),
+                    'username': additional_info.get('username', ''),
+                    'password': additional_info.get('password', '')
+                })
+            elif system_type == 'SERVER':
+                detailed_info.update({
+                    'ip': additional_info.get('ip', ''),
+                    'os': additional_info.get('os', ''),
+                    'username': additional_info.get('username', ''),
+                    'password': additional_info.get('password', '')
+                })
+            elif system_type == 'Application':
+                detailed_info.update({
+                    'url': additional_info.get('url', ''),
+                    'version': additional_info.get('version', ''),
+                    'username': additional_info.get('username', ''),
+                    'password': additional_info.get('password', '')
+                })
+
+            return create_success_response(detailed_info)
+        except Company.DoesNotExist:
+            return create_error_response('System not found')
+        except Exception as e:
+            return create_error_response(str(e))
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SystemShareAPIView(LoginRequiredMixin, View):
+    def get(self, request):
+        try:
+            # Tüm kullanıcıları getir (mevcut kullanıcı hariç)
+            users = User.objects.exclude(id=request.user.id)
+            users_data = [{'id': user.id, 'username': user.username} for user in users]
+            return JsonResponse({'success': True, 'users': users_data})
+        except Exception as e:
+            return create_error_response(str(e))
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            system_id = data.get('system_id')
+            is_public = data.get('is_public', False)
+            shared_with_ids = data.get('shared_with', [])
+
+            system = request.user.companies.get(id=system_id)
+            
+            # Mevcut paylaşımı kontrol et ve güncelle
+            share, created = SystemShare.objects.get_or_create(
+                system=system,
+                shared_by=request.user,
+                defaults={'is_public': is_public}
+            )
+            
+            if not created:
+                share.is_public = is_public
+                share.save()
+            
+            # Paylaşım listesini güncelle
+            if not is_public:
+                share.shared_with.clear()
+                for user_id in shared_with_ids:
+                    try:
+                        user = User.objects.get(id=user_id)
+                        share.shared_with.add(user)
+                    except User.DoesNotExist:
+                        continue
+            else:
+                share.shared_with.clear()
+
+            return create_success_response({
+                'message': 'System shared successfully',
+                'is_public': share.is_public,
+                'shared_with': [user.id for user in share.shared_with.all()]
             })
         except Company.DoesNotExist:
-            return create_error_response('Company not found')
+            return create_error_response('System not found')
+        except json.JSONDecodeError:
+            return create_error_response('Invalid JSON data')
         except Exception as e:
             return create_error_response(str(e))
