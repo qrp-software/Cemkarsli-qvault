@@ -80,7 +80,7 @@
   <div class="row g-4">
     {% for system in systems %}
     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-      <div class="card h-100 shadow-sm border-0 rounded-4 system-card" data-system-id="{{ system.id }}">
+      <div class="card h-100 shadow-sm border-0 rounded-4 system-card" data-system-id="{{ system.id }}" style="cursor: pointer;" onclick="openSystemDetail(event, '{{ system.id }}', '{{ system.name }}', '{{ system.number }}', '{{ system.system_type }}', '{% if system.project %}{{ system.project.name }}{% endif %}')">
         <div class="card-body p-4">
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div class="system-icon">
@@ -96,7 +96,7 @@
                 <i class="fas fa-cog fs-2 text-secondary"></i>
               {% endif %}
             </div>
-            <div class="dropdown">
+            <div class="dropdown" onclick="event.stopPropagation();">
               <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
@@ -164,17 +164,7 @@
             <small class="text-muted">
               <i class="fas fa-clock me-1"></i>ID: {{ system.id }}
             </small>
-            <div class="btn-group">
-              <button class="btn btn-outline-primary btn-sm rounded-pill px-3 me-2" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#sistemDetayModal"
-                      data-id="{{ system.id }}"
-                      data-name="{{ system.name }}"
-                      data-number="{{ system.number }}"
-                      data-system-type="{{ system.system_type }}"
-                      data-project-name="{% if system.project %}{{ system.project.name }}{% endif %}">
-                <i class="fas fa-eye me-1"></i>Detay
-              </button>
+            <div class="btn-group" onclick="event.stopPropagation();">
               <button class="btn btn-outline-success btn-sm rounded-pill px-3"
                       onclick="sistemPaylas('{{ system.id }}', '{{ system.name }}')"
                       title="Sistemi Paylaş"
