@@ -1,0 +1,14 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# SQLite database
+db.sqlite3
+
+# Virtual environment
+venv/
+
+# Editor folders
+.vscode/
+.idea/
+*.swp
