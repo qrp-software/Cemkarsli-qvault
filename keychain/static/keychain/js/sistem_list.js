@@ -16,6 +16,59 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
+// Kart tıklama işleyicisi
+function handleCardClick(event, systemId) {
+    // Eğer tıklanan element dropdown veya paylaş butonu ise işlemi durdur
+    if (event.target.closest('.dropdown') || event.target.closest('.btn-outline-success')) {
+        return;
+    }
+    
+    // Sistem detaylarını getir ve modalı aç
+    showSystemDetails(systemId);
+}
+
+// Sayfa yüklendiğinde kart tıklama olaylarını ayarla
+document.addEventListener('DOMContentLoaded', function() {
+    // Kart tıklama olaylarını ayarla
+    const systemCards = document.querySelectorAll('.system-card');
+    systemCards.forEach(card => {
+        const systemId = card.getAttribute('data-system-id');
+        card.addEventListener('click', function(event) {
+            handleCardClick(event, systemId);
+        });
+    });
+
+    // Detay butonlarına tıklama olaylarını ayarla
+    const detailButtons = document.querySelectorAll('[data-bs-target="#sistemDetayModal"]');
+    detailButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const systemId = this.getAttribute('data-id');
+            if (systemId) {
+                showSystemDetails(systemId);
+            }
+        });
+    });
+
+    // Modal kapanma olayını dinle
+    const detailModal = document.getElementById('sistemDetayModal');
+    if (detailModal) {
+        detailModal.addEventListener('hidden.bs.modal', function() {
+            // Modal kapandığında içeriği temizle
+            document.getElementById('detay_sistemAdi').textContent = '-';
+            document.getElementById('detay_sistemNo').textContent = '-';
+            document.getElementById('detay_projeAdi').textContent = '-';
+            document.getElementById('detay_sistemTipi').textContent = '-';
+            const ekBilgilerIcerik = document.getElementById('detay_ekBilgilerIcerik');
+            const ekBilgilerDiv = document.getElementById('detay_ekBilgiler');
+            if (ekBilgilerIcerik) ekBilgilerIcerik.innerHTML = '';
+            if (ekBilgilerDiv) ekBilgilerDiv.style.display = 'none';
+        });
+    }
+});
+
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
   const button = input.nextElementSibling;
@@ -512,32 +565,4 @@ function showSystemDetails(systemId) {
       console.error('Error:', error);
       alert('Sistem detayları alınırken bir hata oluştu!');
     });
-}
-
-// Detay butonuna tıklandığında
-document.addEventListener('DOMContentLoaded', function() {
-  const detailButtons = document.querySelectorAll('[data-bs-target="#sistemDetayModal"]');
-  detailButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Butonun data-id özelliğini kontrol et
-      const systemId = this.getAttribute('data-id');
-      if (!systemId) {
-        console.error('Sistem ID bulunamadı');
-        return;
-      }
-      
-      // Modal'ı göster
-      const modalElement = document.getElementById('sistemDetayModal');
-      if (!modalElement) {
-        console.error('Modal elementi bulunamadı');
-        return;
-      }
-      
-      // Sistem detaylarını getir
-      showSystemDetails(systemId);
-    });
-  });
-}); 
+} 
