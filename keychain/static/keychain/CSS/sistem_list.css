@@ -1,0 +1,107 @@
+.search-container {
+  transition: all 0.3s ease;
+}
+
+.search-container .input-group {
+  transition: all 0.3s ease;
+}
+
+.search-container.search-focused .input-group {
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+  border-color: rgba(13, 110, 253, 0.3) !important;
+}
+
+.search-container.searching .input-group {
+  animation: pulse 0.3s ease;
+}
+
+.search-clear {
+  transition: all 0.2s ease;
+}
+
+.search-clear:hover {
+  color: #dc3545 !important;
+  transform: scale(1.1);
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#systemSearch::placeholder {
+  color: #adb5bd;
+  transition: all 0.3s ease;
+}
+
+.search-container.search-focused #systemSearch::placeholder {
+  opacity: 0.7;
+}
+
+/* Modal Animasyonları */
+.modal.fade .modal-dialog {
+  transform: scale(0.95);
+  transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* Kart Hover Efektleri */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Radio Buton Stilleri */
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+/* Select Stilleri */
+.form-select {
+  border-radius: 0.5rem;
+}
+
+.form-select option {
+  padding: 0.5rem;
+}
+
+.form-select option:checked {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Scrollbar Stilleri */
+.user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background: #0d6efd;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb:hover {
+  background: #0a58ca;
+} 
