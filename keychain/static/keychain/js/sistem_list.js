@@ -145,8 +145,15 @@ function sistemPaylas(sistemId, sistemAdi) {
   event.preventDefault();
   event.stopPropagation();
   
+  // Modal'ın var olup olmadığını kontrol et
+  const modalElement = document.getElementById('sistemPaylasModal');
+  if (!modalElement) {
+    console.error('Sistem paylaşım modal\'ı bulunamadı. Yetkiniz olmayabilir.');
+    return;
+  }
+  
   // Modal'ı aç
-  const paylasModal = new bootstrap.Modal(document.getElementById('sistemPaylasModal'));
+  const paylasModal = new bootstrap.Modal(modalElement);
   
   // Sistem bilgilerini modal'a aktar
   document.getElementById('paylas_sistemId').value = sistemId;

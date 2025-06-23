@@ -372,6 +372,10 @@ class SystemShareAPIView(LoginRequiredMixin, View):
             return create_error_response(str(e))
 
     def post(self, request):
+        # Sistem paylaşım yetkisi kontrolü
+        if not request.user.can_share_systems:
+            return create_error_response('Sistem paylaşım yetkiniz bulunmamaktadır.')
+        
         try:
             data = json.loads(request.body)
             system_id = data.get('system_id')

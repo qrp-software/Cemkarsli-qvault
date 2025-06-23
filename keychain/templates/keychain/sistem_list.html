@@ -179,6 +179,7 @@
             <small class="text-muted">
               <i class="fas fa-clock me-1"></i>ID: {{ system.id }}
             </small>
+            {% if user.can_share_systems %}
             <div class="btn-group" onclick="event.stopPropagation();">
               <button class="btn btn-outline-success btn-sm rounded-pill px-3"
                       onclick="sistemPaylas('{{ system.id }}', '{{ system.name }}')"
@@ -187,6 +188,7 @@
                 <i class="fas fa-share-alt"></i>
               </button>
             </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -662,6 +664,7 @@
 </div>
 
 <!-- Sistem Paylaş Modal -->
+{% if user.can_share_systems %}
 <div class="modal fade" id="sistemPaylasModal" tabindex="-1" aria-labelledby="sistemPaylasModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
@@ -799,6 +802,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
