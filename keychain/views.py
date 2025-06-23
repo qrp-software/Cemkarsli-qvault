@@ -59,8 +59,25 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         print(f"Home view accessed. User authenticated: {request.user.is_authenticated}")  # Debug
-        user_projects_count = request.user.projects.count()
-        recent_projects = request.user.projects.order_by('-created_date')[:5]
+        
+        # Kullanıcının kendi projeleri
+        own_projects = request.user.projects.all()
+        
+        # Paylaşılan sistemlerin projeleri
+        shared_system_projects = Project.objects.filter(
+            companies__shares__shared_with=request.user
+        ).exclude(owner=request.user)
+        
+        # Herkese açık sistemlerin projeleri
+        public_system_projects = Project.objects.filter(
+            companies__shares__is_public=True
+        ).exclude(owner=request.user).exclude(id__in=shared_system_projects)
+        
+        # Tüm projeleri birleştir
+        all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
+        
+        user_projects_count = all_projects.count()
+        recent_projects = all_projects.order_by('-created_date')[:5]
         
         context = {
             'user': request.user,
@@ -85,8 +102,24 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = user.projects.all()
-        return queryset
+        
+        # Kullanıcının kendi projeleri
+        own_projects = user.projects.all()
+        
+        # Paylaşılan sistemlerin projeleri
+        shared_system_projects = Project.objects.filter(
+            companies__shares__shared_with=user
+        ).exclude(owner=user)
+        
+        # Herkese açık sistemlerin projeleri
+        public_system_projects = Project.objects.filter(
+            companies__shares__is_public=True
+        ).exclude(owner=user).exclude(id__in=shared_system_projects)
+        
+        # Tüm projeleri birleştir
+        all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
+        
+        return all_projects
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -139,7 +172,24 @@ class SistemListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = CompanyForm()
-        context["projects"] = self.request.user.projects.all()
+        
+        # Kullanıcının kendi projeleri
+        own_projects = self.request.user.projects.all()
+        
+        # Paylaşılan sistemlerin projeleri
+        shared_system_projects = Project.objects.filter(
+            companies__shares__shared_with=self.request.user
+        ).exclude(owner=self.request.user)
+        
+        # Herkese açık sistemlerin projeleri
+        public_system_projects = Project.objects.filter(
+            companies__shares__is_public=True
+        ).exclude(owner=self.request.user).exclude(id__in=shared_system_projects)
+        
+        # Tüm projeleri birleştir
+        all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
+        
+        context["projects"] = all_projects
         return context
 
 
