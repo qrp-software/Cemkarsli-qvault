@@ -361,6 +361,7 @@ function showSystemDetails(systemId) {
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                 <p class="mb-0 fw-bold" id="detay_dbPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <input type="hidden" id="detay_dbPassword-value" value="${data.password || '-'}">
                 <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_dbPassword', '${data.password || '-'}')">
                   <i class="fas fa-eye"></i>
                 </button>
@@ -403,6 +404,7 @@ function showSystemDetails(systemId) {
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                 <p class="mb-0 fw-bold" id="detay_vpnPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <input type="hidden" id="detay_vpnPassword-value" value="${data.password || '-'}">
                 <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_vpnPassword', '${data.password || '-'}')">
                   <i class="fas fa-eye"></i>
                 </button>
@@ -445,6 +447,7 @@ function showSystemDetails(systemId) {
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                 <p class="mb-0 fw-bold" id="detay_serverPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <input type="hidden" id="detay_serverPassword-value" value="${data.password || '-'}">
                 <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_serverPassword', '${data.password || '-'}')">
                   <i class="fas fa-eye"></i>
                 </button>
@@ -487,6 +490,7 @@ function showSystemDetails(systemId) {
               </button>
               <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center">
                 <p class="mb-0 fw-bold" id="detay_appPassword">${'*'.repeat(data.password?.length || 0)}</p>
+                <input type="hidden" id="detay_appPassword-value" value="${data.password || '-'}">
                 <button class="btn btn-link btn-sm p-0 ms-2" onclick="togglePasswordVisibility('detay_appPassword', '${data.password || '-'}')">
                   <i class="fas fa-eye"></i>
                 </button>
@@ -529,6 +533,7 @@ function showSystemDetails(systemId) {
 // Şifre görünürlüğünü değiştiren fonksiyon
 function togglePasswordVisibility(elementId, password) {
   const passwordElement = document.getElementById(elementId);
+  const hiddenInput = document.getElementById(elementId + '-value');
   const icon = passwordElement.nextElementSibling.querySelector('i');
   
   if (passwordElement.textContent === password) {
@@ -539,6 +544,11 @@ function togglePasswordVisibility(elementId, password) {
     passwordElement.textContent = password;
     icon.classList.remove('fa-eye');
     icon.classList.add('fa-eye-slash');
+  }
+  
+  // Gizli input alanının değerini güncelle
+  if (hiddenInput) {
+    hiddenInput.value = password;
   }
 }
 
@@ -555,13 +565,27 @@ function openSystemDetail(event, id, name, number, systemType, projectName) {
 
 // Function to copy text to clipboard
 function copyToClipboard(elementId) {
-    const text = document.getElementById(elementId).textContent;
+    const element = document.getElementById(elementId);
+    let text;
+    
+    // Eğer şifre alanı ise, gizli input'tan değeri al
+    if (elementId.includes('Password')) {
+        const hiddenInput = document.getElementById(elementId + '-value');
+        if (hiddenInput && hiddenInput.value !== '-') {
+            text = hiddenInput.value;
+        } else {
+            text = element.textContent;
+        }
+    } else {
+        text = element.textContent;
+    }
+    
     navigator.clipboard.writeText(text).then(() => {
         // Show a temporary success message
-        const originalText = document.getElementById(elementId).textContent;
-        document.getElementById(elementId).textContent = 'Kopyalandı!';
+        const originalText = element.textContent;
+        element.textContent = 'Kopyalandı!';
         setTimeout(() => {
-            document.getElementById(elementId).textContent = originalText;
+            element.textContent = originalText;
         }, 1000);
     });
 }
