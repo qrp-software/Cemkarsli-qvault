@@ -33,52 +33,61 @@ function togglePassword(inputId) {
 }
 
 // Search input focus effects
-document.getElementById('systemSearch').addEventListener('focus', function() {
-  this.parentElement.parentElement.classList.add('search-focused');
-});
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('systemSearch');
+  if (searchInput) {
+    searchInput.addEventListener('focus', function() {
+      this.parentElement.parentElement.classList.add('search-focused');
+    });
 
-document.getElementById('systemSearch').addEventListener('blur', function() {
-  this.parentElement.parentElement.classList.remove('search-focused');
-});
+    searchInput.addEventListener('blur', function() {
+      this.parentElement.parentElement.classList.remove('search-focused');
+    });
 
-// Show/hide clear button
-document.getElementById('systemSearch').addEventListener('input', function() {
-  const clearButton = document.querySelector('.search-clear');
-  clearButton.style.display = this.value ? 'block' : 'none';
+    searchInput.addEventListener('input', function() {
+      const clearButton = document.querySelector('.search-clear');
+      if (clearButton) {
+        clearButton.style.display = this.value ? 'block' : 'none';
+      }
+    });
+  }
 });
 
 function clearSearch() {
   const searchInput = document.getElementById('systemSearch');
-  searchInput.value = '';
-  document.querySelector('.search-clear').style.display = 'none';
-  filterSystems();
-  searchInput.focus();
+  if (searchInput) {
+    searchInput.value = '';
+    const clearButton = document.querySelector('.search-clear');
+    if (clearButton) {
+      clearButton.style.display = 'none';
+    }
+    filterSystems();
+    searchInput.focus();
+  }
 }
 
 // Proje filtreleme fonksiyonu
 let currentProjectFilter = 'all';
 
 function filterByProject(projectName) {
-  console.log('filterByProject çağrıldı, projectName:', projectName);
-  
   currentProjectFilter = projectName;
   
-  // Dropdown butonunun metnini güncelle - daha spesifik seçici kullan
+  // Dropdown butonunun metnini güncelle
   const dropdownButton = document.querySelector('.dropdown[aria-label="Projeler"] button');
-  
-  if (projectName === 'all') {
-    dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>Projeler`;
-  } else {
-    const dropdownItems = document.querySelectorAll('.dropdown[aria-label="Projeler"] .dropdown-menu .dropdown-item');
-    dropdownItems.forEach(item => {
-      if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(projectName)) {
-        const text = item.textContent.trim();
-        dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>${text}`;
-      }
-    });
+  if (dropdownButton) {
+    if (projectName === 'all') {
+      dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>Projeler`;
+    } else {
+      const dropdownItems = document.querySelectorAll('.dropdown[aria-label="Projeler"] .dropdown-menu .dropdown-item');
+      dropdownItems.forEach(item => {
+        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(projectName)) {
+          const text = item.textContent.trim();
+          dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>${text}`;
+        }
+      });
+    }
   }
   
-  console.log('filterSystems çağrılıyor...');
   // Sistemleri filtrele
   filterSystems();
 }
@@ -136,18 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function filterSystems() {
-  const searchText = document.getElementById('systemSearch').value.toLowerCase();
+  const searchInput = document.getElementById('systemSearch');
+  if (!searchInput) return;
+  
+  const searchText = searchInput.value.toLowerCase();
   const activeFilterElement = document.querySelector('[data-filter].active');
   const activeFilter = activeFilterElement ? activeFilterElement.getAttribute('data-filter') : 'all';
   const systemCards = document.querySelectorAll('.system-card');
   const searchContainer = document.querySelector('.search-container');
-
-  // Debug için console.log ekleyelim
-  console.log('Filtreleme başlatıldı:');
-  console.log('Arama metni:', searchText);
-  console.log('Aktif sistem filtresi:', activeFilter);
-  console.log('Aktif proje filtresi:', currentProjectFilter);
-  console.log('Toplam sistem kartı sayısı:', systemCards.length);
 
   // Add loading animation
   if (searchContainer) {
@@ -158,15 +163,19 @@ function filterSystems() {
   }
 
   systemCards.forEach(card => {
-    const systemType = card.querySelector('.system-type-badge').textContent.trim().toLowerCase();
-    const systemName = card.querySelector('.card-title').textContent.toLowerCase();
-    const systemNumber = card.querySelector('.text-muted:nth-of-type(2)').textContent.toLowerCase();
+    const systemTypeElement = card.querySelector('.system-type-badge');
+    const systemNameElement = card.querySelector('.card-title');
+    const systemNumberElement = card.querySelector('.text-muted:nth-of-type(2)');
+    
+    if (!systemTypeElement || !systemNameElement || !systemNumberElement) return;
+    
+    const systemType = systemTypeElement.textContent.trim().toLowerCase();
+    const systemName = systemNameElement.textContent.toLowerCase();
+    const systemNumber = systemNumberElement.textContent.toLowerCase();
     
     // Proje adını data attribute'dan al
     const projectName = card.getAttribute('data-project-name') || '';
     const actualProjectName = projectName === 'none' ? '' : projectName;
-    
-    const projectId = card.getAttribute('data-project-id');
 
     const matchesFilter = activeFilter === 'all' || systemType.includes(activeFilter.toLowerCase());
     const matchesSearch = systemName.includes(searchText) || 
@@ -174,15 +183,15 @@ function filterSystems() {
                         actualProjectName.toLowerCase().includes(searchText);
     const matchesProject = currentProjectFilter === 'all' || actualProjectName.toLowerCase().includes(currentProjectFilter.toLowerCase());
 
-    // Debug için her kartın durumunu logla
-    console.log(`Sistem: ${systemName}, Proje Adı: ${actualProjectName}, Seçilen Proje: ${currentProjectFilter}, Filtre: ${matchesFilter}, Arama: ${matchesSearch}, Proje: ${matchesProject}`);
-
-    if (matchesFilter && matchesSearch && matchesProject) {
-      card.closest('.col-xl-3').style.display = '';
-      card.closest('.col-xl-3').classList.add('fade-in');
-    } else {
-      card.closest('.col-xl-3').style.display = 'none';
-      card.closest('.col-xl-3').classList.remove('fade-in');
+    const cardContainer = card.closest('.col-xl-3');
+    if (cardContainer) {
+      if (matchesFilter && matchesSearch && matchesProject) {
+        cardContainer.style.display = '';
+        cardContainer.classList.add('fade-in');
+      } else {
+        cardContainer.style.display = 'none';
+        cardContainer.classList.remove('fade-in');
+      }
     }
   });
 }
@@ -644,89 +653,11 @@ function copyToClipboard(elementId) {
     });
 }
 
-// Function to toggle password visibility
-function togglePassword(inputId) {
-    const input = document.getElementById(inputId);
-    const icon = input.nextElementSibling.querySelector('i');
-    
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-
-// Function to clear search
-function clearSearch() {
-    document.getElementById('systemSearch').value = '';
-    filterSystems();
-}
-
-// Function to filter systems
-function filterSystems() {
-    const searchText = document.getElementById('systemSearch').value.toLowerCase();
-    const cards = document.querySelectorAll('.system-card');
-    const clearButton = document.querySelector('.search-clear');
-    
-    // Show/hide clear button based on search text
-    clearButton.style.display = searchText ? 'block' : 'none';
-    
-    cards.forEach(card => {
-        const systemName = card.querySelector('.card-title').textContent.toLowerCase();
-        const systemNumber = card.querySelector('.text-muted:nth-of-type(2)').textContent.toLowerCase();
-        
-        // Proje adını data attribute'dan al
-        const projectName = card.getAttribute('data-project-name') || '';
-        const actualProjectName = projectName === 'none' ? '' : projectName;
-        
-        if (systemName.includes(searchText) || 
-            systemNumber.includes(searchText) || 
-            actualProjectName.toLowerCase().includes(searchText)) {
-            card.closest('.col-xl-3').style.display = '';
-        } else {
-            card.closest('.col-xl-3').style.display = 'none';
-        }
-    });
-}
-
 // Add event listeners when document is ready
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Add click event listeners to filter buttons
-    document.querySelectorAll('[data-filter]').forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            document.querySelectorAll('[data-filter]').forEach(btn => {
-                btn.classList.remove('active');
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-light');
-            });
-            
-            // Add active class to clicked button
-            this.classList.add('active');
-            this.classList.remove('btn-light');
-            this.classList.add('btn-primary');
-            
-            const filter = this.getAttribute('data-filter');
-            const cards = document.querySelectorAll('.system-card');
-            
-            cards.forEach(card => {
-                const systemType = card.querySelector('.system-type-badge').textContent.trim();
-                if (filter === 'all' || systemType.includes(filter)) {
-                    card.closest('.col-xl-3').style.display = '';
-                } else {
-                    card.closest('.col-xl-3').style.display = 'none';
-                }
-            });
-        });
     });
 }); 
