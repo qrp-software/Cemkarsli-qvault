@@ -21,115 +21,57 @@
     <link rel="stylesheet" href="{% static 'keychain/CSS/index.css' %}" />
     <link rel="stylesheet" href="{% static 'keychain/CSS/sidebar.css' %}" />
     <style>
-      .navbar {
-        position: fixed;
-        top: 0;
-        left: 250px;
-        right: 0;
-        transition: left 0.3s ease;
-        z-index: 999;
-      }
-      
-      .navbar.expanded {
-        left: 60px;
-      }
-      
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 250px;
-        transition: all 0.3s ease;
-        z-index: 1000;
-      }
-      
-      .sidebar.collapsed {
-        width: 60px;
-      }
-      
-      .sidebar.collapsed .nav-link {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        justify-content: center;
-      }
-      
-      .sidebar.collapsed .nav-link span {
-        display: none;
-      }
-      
-      .sidebar.collapsed .nav-link i {
-        font-size: 1.2rem !important;
-        margin: 0 !important;
-      }
-      
-      .sidebar-toggle {
-        position: absolute;
-        right: -15px;
-        top: 20px;
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        z-index: 1001;
-      }
-      
-      .sidebar-toggle:hover {
-        background: #f8f9fa;
-      }
-      
       .nav-link {
         transition: all 0.3s ease;
       }
       
-      .nav-link i {
-        width: 24px;
-        text-align: center;
+      .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
       }
       
-      .main-content {
-        margin-left: 250px;
-        transition: margin-left 0.3s ease;
-        padding-top: 70px;
+      .nav-link.active {
+        background-color: #0d6efd !important;
       }
       
-      .main-content.expanded {
-        margin-left: 60px;
+      /* Sidebar kapalı durumu */
+      .sidebar-collapsed #sidebar {
+        transform: translateX(-280px);
       }
       
+      .sidebar-collapsed #mainContent {
+        margin-left: 0 !important;
+      }
+      
+      .sidebar-collapsed .navbar {
+        left: 0 !important;
+      }
+      
+      /* Mobil responsive */
       @media (max-width: 768px) {
+        #sidebar {
+          transform: translateX(-280px);
+        }
+        #mainContent {
+          margin-left: 0 !important;
+        }
         .navbar {
-          left: 0;
+          left: 0 !important;
         }
-        .sidebar {
-          transform: translateX(-100%);
-        }
-        .sidebar.show {
+        .sidebar-mobile-open #sidebar {
           transform: translateX(0);
-        }
-        .main-content {
-          margin-left: 0;
         }
       }
     </style>
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow border-0 py-2">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow border-0 py-2" style="position: fixed; top: 0; left: 280px; right: 0; z-index: 1001; transition: left 0.3s ease;">
       <div class="container-fluid px-4">
         <div class="d-flex align-items-center">
-          <button class="btn btn-light btn-sm rounded-3 border-0 shadow-sm d-md-none me-3" id="mobileSidebarToggle">
+          <button class="btn btn-light btn-sm rounded-3 border-0 shadow-sm me-3" id="sidebarToggle">
             <i class="fas fa-bars fs-5 text-secondary"></i>
           </button>
-          <a href="{% url 'keychain:home' %}" class="navbar-brand d-flex align-items-center gap-2 text-decoration-none">
-            <img src="{% static 'keychain/images/qvaultlogo.png' %}" alt="QRP Logo" style="height: 80px;">
-          </a>
+     
         </div>
         <div class="d-flex align-items-center gap-3">
           <div class="language-selector d-none d-md-flex">
@@ -179,30 +121,49 @@
       </div>
     </nav>
 
-    <div class="sidebar bg-dark">
-      <button class="sidebar-toggle" id="sidebarToggle" title="Kenar Çubuğunu Aç/Kapat">
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      <ul class="nav flex-column pt-3" role="navigation">
+    <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" id="sidebar" style="width: 280px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s ease;">
+      <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+        <a href="{% url 'keychain:home' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+          <img src="{% static 'keychain/images/qrplogo_light.png' %}" alt="QRP Logo" style="height: 80px; display: block; margin: 0 auto;">
+        </a>
+      </div>
+      <hr>
+      <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
-          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'keychain:home' %}">
-            <i class="fas fa-home"></i><span>Ana Sayfa</span>
+          <a href="{% url 'keychain:home' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'home' %}active{% endif %}" aria-current="page">
+            <i class="fas fa-home me-2"></i>
+            Ana Sayfa
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link {% if request.resolver_match.url_name == 'project_list' %}active{% endif %}" href="{% url 'keychain:project_list' %}">
-            <i class="fas fa-list-ul"></i><span>Projeler</span>
+        <li>
+          <a href="{% url 'keychain:project_list' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'project_list' %}active{% endif %}">
+            <i class="fas fa-list-ul me-2"></i>
+            Projeler
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link text-white d-flex align-items-center gap-3 px-4 py-3 sidebar-link {% if request.resolver_match.url_name == 'sistem_list' %}active{% endif %}" href="{% url 'keychain:sistem_list' %}">
-            <i class="fas fa-cogs"></i><span>Sistemler</span>
+        <li>
+          <a href="{% url 'keychain:sistem_list' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'sistem_list' %}active{% endif %}">
+            <i class="fas fa-cogs me-2"></i>
+            Sistemler
           </a>
         </li>
       </ul>
+      <hr>
+      <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+          <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+          <strong>{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+          <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Ayarlar</a></li>
+          <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Yardım</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'keychain:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="main-content bg-light">
+    <div class="main-content bg-light" id="mainContent" style="margin-left: 280px; padding-top: 70px; min-height: 100vh; transition: margin-left 0.3s ease;">
       {% block content %}{% endblock %}
     </div>
 
@@ -211,6 +172,56 @@
     <!-- Custom JS -->
     <script src="{% static 'keychain/js/main.js' %}"></script>
     <script src="{% static 'keychain/js/sidebar.js' %}"></script>
+    <script>
+      // Sidebar toggle functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const body = document.body;
+        const mainContent = document.getElementById('mainContent');
+        const navbar = document.querySelector('.navbar');
+        const sidebar = document.getElementById('sidebar');
+        
+        // Sidebar durumunu localStorage'dan al
+        const sidebarState = localStorage.getItem('sidebarCollapsed');
+        if (sidebarState === 'true') {
+          body.classList.add('sidebar-collapsed');
+        }
+        
+        sidebarToggle.addEventListener('click', function() {
+          body.classList.toggle('sidebar-collapsed');
+          
+          // Sidebar durumunu localStorage'a kaydet
+          localStorage.setItem('sidebarCollapsed', body.classList.contains('sidebar-collapsed'));
+          
+          // Console'a durum yazdır (debug için)
+          console.log('Sidebar collapsed:', body.classList.contains('sidebar-collapsed'));
+        });
+        
+        // Mobil cihazlarda sidebar'ı açmak için
+        if (window.innerWidth <= 768) {
+          body.classList.add('sidebar-collapsed');
+          
+          sidebarToggle.addEventListener('click', function() {
+            body.classList.toggle('sidebar-mobile-open');
+          });
+          
+          // Sidebar dışına tıklandığında kapat
+          document.addEventListener('click', function(e) {
+            if (!sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target)) {
+              body.classList.remove('sidebar-mobile-open');
+            }
+          });
+        }
+        
+        // Pencere boyutu değiştiğinde kontrol et
+        window.addEventListener('resize', function() {
+          if (window.innerWidth <= 768) {
+            body.classList.add('sidebar-collapsed');
+          }
+        });
+      });
+    </script>
     {% block extra_js %}{% endblock %}
   </body>
 </html> 

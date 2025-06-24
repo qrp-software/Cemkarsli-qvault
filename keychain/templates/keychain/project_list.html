@@ -1,4 +1,5 @@
 {% extends 'keychain/base.html' %}
+{% load static %}
 
 {% block title %}Proje Listeleri{% endblock %}
 
@@ -196,4 +197,26 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'keychain/js/main.js' %}"></script>
+<script>
+// Sayfa yüklendiğinde URL parametresini kontrol et
+document.addEventListener('DOMContentLoaded', function() {
+  // URL'den modal parametresini al
+  const urlParams = new URLSearchParams(window.location.search);
+  const modalParam = urlParams.get('modal');
+  
+  // Eğer modal parametresi varsa ve projeEkleModal ise modalı aç
+  if (modalParam === 'projeEkleModal') {
+    const modal = new bootstrap.Modal(document.getElementById('projeEkleModal'));
+    modal.show();
+    
+    // URL'den modal parametresini temizle (sayfa yenilenmeden)
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+});
+</script>
 {% endblock %}

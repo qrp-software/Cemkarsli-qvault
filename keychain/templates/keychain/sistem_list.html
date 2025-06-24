@@ -36,7 +36,7 @@
 
   <!-- Filtre Butonları -->
   <div class="mb-4">
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex justify-content-between align-items-center">
       <div class="btn-group shadow-sm rounded-3" role="group" aria-label="Sistem tipi filtreleri">
         <button type="button" class="btn btn-light active px-4 py-2" data-filter="all">
           <i class="fas fa-th-large me-2"></i>Tümü
@@ -53,6 +53,34 @@
         <button type="button" class="btn btn-info px-4 py-2" data-filter="Application" style="background-color: #0dcaf0; border-color: #0dcaf0; color: #000;">
           <i class="fas fa-desktop me-2"></i>Application
         </button>
+      </div>
+      <div class="d-flex justify-content-end">
+        <div class="dropdown" role="group" aria-label="Projeler">
+          <button type="button" class="btn btn-light px-4 py-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-folder me-2"></i>Projeler
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" href="#" onclick="filterByProject('all')">
+                <i class="fas fa-th-large me-2"></i>Tüm Projeler
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% for project in projects %}
+            <li>
+              <a class="dropdown-item" href="#" onclick="filterByProject('{{ project.name }}')" data-project-name="{{ project.name }}">
+                <i class="fas fa-folder-open me-2"></i>{{ project.name }}
+              </a>
+            </li>
+            {% endfor %}
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'keychain:project_list' %}?modal=projeEkleModal">
+                <i class="fas fa-plus me-2"></i>Yeni Proje
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
       <div class="search-container position-relative" style="width: 350px;">
         <div class="input-group shadow-sm rounded-4 overflow-hidden" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.1);">
@@ -80,7 +108,12 @@
   <div class="row g-4">
     {% for system in systems %}
     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-      <div class="card h-100 shadow-sm border-0 rounded-4 system-card" data-system-id="{{ system.id }}" style="cursor: pointer;" onclick="openSystemDetail(event, '{{ system.id }}', '{{ system.name }}', '{{ system.number }}', '{{ system.system_type }}', '{% if system.project %}{{ system.project.name }}{% endif %}')">
+      <div class="card h-100 shadow-sm border-0 rounded-4 system-card" 
+           data-system-id="{{ system.id }}" 
+           data-project-id="{% if system.project %}{{ system.project.id }}{% else %}none{% endif %}"
+           data-project-name="{% if system.project %}{{ system.project.name }}{% else %}none{% endif %}"
+           style="cursor: pointer;" 
+           onclick="openSystemDetail(event, '{{ system.id }}', '{{ system.name }}', '{{ system.number }}', '{{ system.system_type }}', '{% if system.project %}{{ system.project.name }}{% endif %}')">
         <div class="card-body p-4">
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div class="system-icon">
@@ -807,4 +840,99 @@
 
 {% block extra_js %}
 <script src="{% static 'keychain/js/sistem_list.js' %}"></script>
+<script>
+// Proje filtreleme fonksiyonu - currentProjectFilter zaten sistem_list.js'de tanımlı
+
+function filterByProject(projectName) {
+  console.log('=== filterByProject çağrıldı ===');
+  console.log('Gelen projectName:', projectName);
+  console.log('Önceki currentProjectFilter:', currentProjectFilter);
+  
+  currentProjectFilter = projectName;
+  console.log('Yeni currentProjectFilter:', currentProjectFilter);
+  
+  // Dropdown butonunun metnini güncelle - daha spesifik seçici kullan
+  const dropdownButton = document.querySelector('.dropdown[aria-label="Projeler"] button');
+  console.log('Dropdown button bulundu:', dropdownButton);
+  
+  if (projectName === 'all') {
+    dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>Projeler`;
+    console.log('Tüm projeler seçildi, buton metni güncellendi');
+  } else {
+    const dropdownItems = document.querySelectorAll('.dropdown[aria-label="Projeler"] .dropdown-menu .dropdown-item');
+    console.log('Dropdown items bulundu:', dropdownItems.length);
+    
+    dropdownItems.forEach((item, index) => {
+      const onclickAttr = item.getAttribute('onclick');
+      console.log(`Item ${index}:`, item.textContent.trim(), 'onclick:', onclickAttr);
+      
+      if (onclickAttr && onclickAttr.includes(projectName)) {
+        const text = item.textContent.trim();
+        dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>${text}`;
+        console.log('Buton metni güncellendi:', text);
+      }
+    });
+  }
+  
+  console.log('filterSystems çağrılıyor...');
+  // Sistemleri filtrele
+  filterSystems();
+  console.log('=== filterByProject tamamlandı ===');
+}
+
+// Sistemleri filtreleme fonksiyonu
+function filterSystems() {
+  const searchText = document.getElementById('systemSearch').value.toLowerCase();
+  const activeFilterElement = document.querySelector('[data-filter].active');
+  const activeFilter = activeFilterElement ? activeFilterElement.getAttribute('data-filter') : 'all';
+  const systemCards = document.querySelectorAll('.system-card');
+  const searchContainer = document.querySelector('.search-container');
+
+  // Debug için console.log ekleyelim
+  console.log('=== filterSystems başlatıldı ===');
+  console.log('Arama metni:', searchText);
+  console.log('Aktif sistem filtresi:', activeFilter);
+  console.log('Aktif proje filtresi:', currentProjectFilter);
+  console.log('Toplam sistem kartı sayısı:', systemCards.length);
+
+  // Add loading animation
+  if (searchContainer) {
+    searchContainer.classList.add('searching');
+    setTimeout(() => {
+      searchContainer.classList.remove('searching');
+    }, 300);
+  }
+
+  systemCards.forEach((card, index) => {
+    const systemType = card.querySelector('.system-type-badge').textContent.trim().toLowerCase();
+    const systemName = card.querySelector('.card-title').textContent.toLowerCase();
+    const systemNumber = card.querySelector('.text-muted:nth-of-type(2)').textContent.toLowerCase();
+    
+    // Proje adını data attribute'dan al
+    const projectName = card.getAttribute('data-project-name') || '';
+    const actualProjectName = projectName === 'none' ? '' : projectName;
+    
+    const projectId = card.getAttribute('data-project-id');
+
+    const matchesFilter = activeFilter === 'all' || systemType.includes(activeFilter.toLowerCase());
+    const matchesSearch = systemName.includes(searchText) || 
+                        systemNumber.includes(searchText) || 
+                        actualProjectName.toLowerCase().includes(searchText);
+    const matchesProject = currentProjectFilter === 'all' || actualProjectName.toLowerCase().includes(currentProjectFilter.toLowerCase());
+
+    // Debug için her kartın durumunu logla
+    console.log(`Kart ${index}: Sistem: ${systemName}, Proje Adı: ${actualProjectName}, Seçilen Proje: ${currentProjectFilter}, Filtre: ${matchesFilter}, Arama: ${matchesSearch}, Proje: ${matchesProject}`);
+
+    if (matchesFilter && matchesSearch && matchesProject) {
+      card.closest('.col-xl-3').style.display = '';
+      card.closest('.col-xl-3').classList.add('fade-in');
+    } else {
+      card.closest('.col-xl-3').style.display = 'none';
+      card.closest('.col-xl-3').classList.remove('fade-in');
+    }
+  });
+  
+  console.log('=== filterSystems tamamlandı ===');
+}
+</script>
 {% endblock %}

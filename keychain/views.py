@@ -338,6 +338,11 @@ class CompanyDeleteAPIView(LoginRequiredMixin, View):
     def delete(self, request, company_id):
         try:
             company = request.user.companies.get(id=company_id)
+            
+            # Önce sistemin paylaşımlarını sil
+            SystemShare.objects.filter(system=company).delete()
+            
+            # Sonra sistemi sil
             company.delete()
             return create_success_response({'message': 'Company deleted successfully'})
         except Company.DoesNotExist:
