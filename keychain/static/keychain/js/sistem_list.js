@@ -55,6 +55,34 @@ function clearSearch() {
   searchInput.focus();
 }
 
+// Proje filtreleme fonksiyonu
+let currentProjectFilter = 'all';
+
+function filterByProject(projectName) {
+  console.log('filterByProject çağrıldı, projectName:', projectName);
+  
+  currentProjectFilter = projectName;
+  
+  // Dropdown butonunun metnini güncelle - daha spesifik seçici kullan
+  const dropdownButton = document.querySelector('.dropdown[aria-label="Projeler"] button');
+  
+  if (projectName === 'all') {
+    dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>Projeler`;
+  } else {
+    const dropdownItems = document.querySelectorAll('.dropdown[aria-label="Projeler"] .dropdown-menu .dropdown-item');
+    dropdownItems.forEach(item => {
+      if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(projectName)) {
+        const text = item.textContent.trim();
+        dropdownButton.innerHTML = `<i class="fas fa-folder me-2"></i>${text}`;
+      }
+    });
+  }
+  
+  console.log('filterSystems çağrılıyor...');
+  // Sistemleri filtrele
+  filterSystems();
+}
+
 // Filtreleme ve arama fonksiyonu
 document.addEventListener('DOMContentLoaded', function() {
   const filterButtons = document.querySelectorAll('[data-filter]');
@@ -109,28 +137,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function filterSystems() {
   const searchText = document.getElementById('systemSearch').value.toLowerCase();
-  const activeFilter = document.querySelector('[data-filter].active').getAttribute('data-filter');
+  const activeFilterElement = document.querySelector('[data-filter].active');
+  const activeFilter = activeFilterElement ? activeFilterElement.getAttribute('data-filter') : 'all';
   const systemCards = document.querySelectorAll('.system-card');
   const searchContainer = document.querySelector('.search-container');
 
+  // Debug için console.log ekleyelim
+  console.log('Filtreleme başlatıldı:');
+  console.log('Arama metni:', searchText);
+  console.log('Aktif sistem filtresi:', activeFilter);
+  console.log('Aktif proje filtresi:', currentProjectFilter);
+  console.log('Toplam sistem kartı sayısı:', systemCards.length);
+
   // Add loading animation
-  searchContainer.classList.add('searching');
-  setTimeout(() => {
-    searchContainer.classList.remove('searching');
-  }, 300);
+  if (searchContainer) {
+    searchContainer.classList.add('searching');
+    setTimeout(() => {
+      searchContainer.classList.remove('searching');
+    }, 300);
+  }
 
   systemCards.forEach(card => {
     const systemType = card.querySelector('.system-type-badge').textContent.trim().toLowerCase();
     const systemName = card.querySelector('.card-title').textContent.toLowerCase();
     const systemNumber = card.querySelector('.text-muted:nth-of-type(2)').textContent.toLowerCase();
-    const projectName = card.querySelector('.text-muted:nth-of-type(1)')?.textContent.toLowerCase() || '';
+    
+    // Proje adını data attribute'dan al
+    const projectName = card.getAttribute('data-project-name') || '';
+    const actualProjectName = projectName === 'none' ? '' : projectName;
+    
+    const projectId = card.getAttribute('data-project-id');
 
     const matchesFilter = activeFilter === 'all' || systemType.includes(activeFilter.toLowerCase());
     const matchesSearch = systemName.includes(searchText) || 
                         systemNumber.includes(searchText) || 
-                        projectName.includes(searchText);
+                        actualProjectName.toLowerCase().includes(searchText);
+    const matchesProject = currentProjectFilter === 'all' || actualProjectName.toLowerCase().includes(currentProjectFilter.toLowerCase());
 
-    if (matchesFilter && matchesSearch) {
+    // Debug için her kartın durumunu logla
+    console.log(`Sistem: ${systemName}, Proje Adı: ${actualProjectName}, Seçilen Proje: ${currentProjectFilter}, Filtre: ${matchesFilter}, Arama: ${matchesSearch}, Proje: ${matchesProject}`);
+
+    if (matchesFilter && matchesSearch && matchesProject) {
       card.closest('.col-xl-3').style.display = '';
       card.closest('.col-xl-3').classList.add('fade-in');
     } else {
@@ -145,8 +192,15 @@ function sistemPaylas(sistemId, sistemAdi) {
   event.preventDefault();
   event.stopPropagation();
   
+  // Modal'ın var olup olmadığını kontrol et
+  const modalElement = document.getElementById('sistemPaylasModal');
+  if (!modalElement) {
+    console.error('Sistem paylaşım modal\'ı bulunamadı. Yetkiniz olmayabilir.');
+    return;
+  }
+  
   // Modal'ı aç
-  const paylasModal = new bootstrap.Modal(document.getElementById('sistemPaylasModal'));
+  const paylasModal = new bootstrap.Modal(modalElement);
   
   // Sistem bilgilerini modal'a aktar
   document.getElementById('paylas_sistemId').value = sistemId;
@@ -624,11 +678,14 @@ function filterSystems() {
     cards.forEach(card => {
         const systemName = card.querySelector('.card-title').textContent.toLowerCase();
         const systemNumber = card.querySelector('.text-muted:nth-of-type(2)').textContent.toLowerCase();
-        const projectName = card.querySelector('.text-muted:nth-of-type(1)')?.textContent.toLowerCase() || '';
+        
+        // Proje adını data attribute'dan al
+        const projectName = card.getAttribute('data-project-name') || '';
+        const actualProjectName = projectName === 'none' ? '' : projectName;
         
         if (systemName.includes(searchText) || 
             systemNumber.includes(searchText) || 
-            projectName.includes(searchText)) {
+            actualProjectName.toLowerCase().includes(searchText)) {
             card.closest('.col-xl-3').style.display = '';
         } else {
             card.closest('.col-xl-3').style.display = 'none';

@@ -1,4 +1,5 @@
 {% extends 'keychain/base.html' %}
+{% load static %}
 
 {% block title %}Proje Listeleri{% endblock %}
 
@@ -48,9 +49,17 @@
             <tr>
               <td class="px-4 py-4 fw-medium">{{ project.id }}</td>
               <td class="px-4 py-4 fw-medium">{{ project.code }}</td>
-              <td class="px-4 py-4 fw-medium">{{ project.name }}</td>
+              <td class="px-4 py-4 fw-medium">
+                {{ project.name }}
+                {% if project.owner != user %}
+                  <span class="badge bg-success bg-opacity-10 text-success ms-2" title="Paylaşılan Proje">
+                    <i class="fas fa-share-alt me-1"></i>Paylaşılan
+                  </span>
+                {% endif %}
+              </td>
               <td class="px-4 py-4 text-muted">{{ project.description|truncatewords:10 }}</td>
               <td class="px-4 py-4 text-center">
+                {% if project.owner == user %}
                 <div class="btn-group" role="group">
                   <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
                           data-bs-toggle="modal" 
@@ -69,6 +78,11 @@
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
+                {% else %}
+                <span class="text-muted small">
+                  <i class="fas fa-eye me-1"></i>Sadece Görüntüleme
+                </span>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}
@@ -183,4 +197,26 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'keychain/js/main.js' %}"></script>
+<script>
+// Sayfa yüklendiğinde URL parametresini kontrol et
+document.addEventListener('DOMContentLoaded', function() {
+  // URL'den modal parametresini al
+  const urlParams = new URLSearchParams(window.location.search);
+  const modalParam = urlParams.get('modal');
+  
+  // Eğer modal parametresi varsa ve projeEkleModal ise modalı aç
+  if (modalParam === 'projeEkleModal') {
+    const modal = new bootstrap.Modal(document.getElementById('projeEkleModal'));
+    modal.show();
+    
+    // URL'den modal parametresini temizle (sayfa yenilenmeden)
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+});
+</script>
 {% endblock %}

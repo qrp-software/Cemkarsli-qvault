@@ -8,3 +8,8 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["first_name", "last_name", "email"]
 
     email = models.EmailField(_("Email"), unique=True)
+    can_share_systems = models.BooleanField(
+        _("Sistem Paylaşım Yetkisi"), 
+        default=False,
+        help_text=_("Bu kullanıcının sistem paylaşımı yapabilmesine izin ver")
+    )
