@@ -116,3 +116,23 @@ venv/
 .vscode/
 .idea/
 *.swp
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Static and media files
+public/
+static/
+media/
+
+# Locale files
+locale/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

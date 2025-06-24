@@ -122,9 +122,9 @@
     </nav>
 
     <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" id="sidebar" style="width: 280px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s ease;">
-      <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-        <a href="{% url 'keychain:home' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-          <img src="{% static 'keychain/images/qrplogo_light.png' %}" alt="QRP Logo" style="height: 80px; display: block; margin: 0 auto;">
+      <div class="d-flex justify-content-center align-items-center" style="height: 100px; width: 100%;">
+        <a href="{% url 'keychain:home' %}" class="d-flex align-items-center justify-content-center text-white text-decoration-none" style="width: 100%;">
+          <img src="{% static 'keychain/images/qrplogo_light.png' %}" alt="QRP Logo" style="height: 190px; display: block;">
         </a>
       </div>
       <hr>
@@ -172,56 +172,6 @@
     <!-- Custom JS -->
     <script src="{% static 'keychain/js/main.js' %}"></script>
     <script src="{% static 'keychain/js/sidebar.js' %}"></script>
-    <script>
-      // Sidebar toggle functionality
-      document.addEventListener('DOMContentLoaded', function() {
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const body = document.body;
-        const mainContent = document.getElementById('mainContent');
-        const navbar = document.querySelector('.navbar');
-        const sidebar = document.getElementById('sidebar');
-        
-        // Sidebar durumunu localStorage'dan al
-        const sidebarState = localStorage.getItem('sidebarCollapsed');
-        if (sidebarState === 'true') {
-          body.classList.add('sidebar-collapsed');
-        }
-        
-        sidebarToggle.addEventListener('click', function() {
-          body.classList.toggle('sidebar-collapsed');
-          
-          // Sidebar durumunu localStorage'a kaydet
-          localStorage.setItem('sidebarCollapsed', body.classList.contains('sidebar-collapsed'));
-          
-          // Console'a durum yazdır (debug için)
-          console.log('Sidebar collapsed:', body.classList.contains('sidebar-collapsed'));
-        });
-        
-        // Mobil cihazlarda sidebar'ı açmak için
-        if (window.innerWidth <= 768) {
-          body.classList.add('sidebar-collapsed');
-          
-          sidebarToggle.addEventListener('click', function() {
-            body.classList.toggle('sidebar-mobile-open');
-          });
-          
-          // Sidebar dışına tıklandığında kapat
-          document.addEventListener('click', function(e) {
-            if (!sidebar.contains(e.target) && 
-                !sidebarToggle.contains(e.target)) {
-              body.classList.remove('sidebar-mobile-open');
-            }
-          });
-        }
-        
-        // Pencere boyutu değiştiğinde kontrol et
-        window.addEventListener('resize', function() {
-          if (window.innerWidth <= 768) {
-            body.classList.add('sidebar-collapsed');
-          }
-        });
-      });
-    </script>
     {% block extra_js %}{% endblock %}
   </body>
 </html> 

@@ -1,36 +1,7 @@
 // Mobile menu toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
-  const menuToggle = document.getElementById('sidebarToggle');
-  const sidebar = document.querySelector('.sidebar');
-  const sidebarOverlay = document.querySelector('.sidebar-overlay');
-  
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function() {
-      sidebar.classList.toggle('show');
-      sidebarOverlay.classList.toggle('show');
-    });
-
-    // Close sidebar when clicking overlay
-    if (sidebarOverlay) {
-      sidebarOverlay.addEventListener('click', function() {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-      });
-    }
-
-    // Close sidebar when clicking on a nav link (mobile)
-    const navLinks = sidebar.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-      link.addEventListener('click', function() {
-        if (window.innerWidth <= 768) {
-          sidebar.classList.remove('show');
-          sidebarOverlay.classList.remove('show');
-        }
-      });
-    });
-  }
-
-  // Sistem kartlarına tıklama olayını kaldırıyoruz çünkü sistem_list.js'de yönetiliyor
+  // Sidebar işlevselliği sidebar.js dosyasında yönetiliyor
+  // Bu dosyada sadece modal ve diğer işlevler kalacak
 
   // Proje Düzenle Modal
   const projeDuzenleModal = document.getElementById('projeDuzenleModal');
