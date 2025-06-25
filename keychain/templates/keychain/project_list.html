@@ -25,9 +25,56 @@
       </div>
       <div class="position-absolute" style="top:-10px; right:-10px; width:60px; height:60px; background: linear-gradient(135deg, #0d6efd, #6610f2); opacity:0.1; border-radius:50%; filter: blur(20px);"></div>
     </div>
-    <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#projeEkleModal">
-      <i class="fas fa-plus-circle me-2"></i>Proje Ekle
-    </button>
+    <div class="d-flex gap-3">
+      <!-- Sıralama Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-outline-primary btn-lg shadow-sm rounded-3 px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-sort me-2"></i>Sırala
+        </button>
+        <ul class="dropdown-menu">
+          <li><h6 class="dropdown-header">ID'ye Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'id' and current_order == 'asc' %}active{% endif %}" href="?sort=id&order=asc">
+            <i class="fas fa-sort-numeric-down me-2"></i>ID (Küçükten Büyüğe)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'id' and current_order == 'desc' %}active{% endif %}" href="?sort=id&order=desc">
+            <i class="fas fa-sort-numeric-up me-2"></i>ID (Büyükten Küçüğe)
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Proje Koduna Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'code' and current_order == 'asc' %}active{% endif %}" href="?sort=code&order=asc">
+            <i class="fas fa-sort-alpha-down me-2"></i>Kod (A-Z)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'code' and current_order == 'desc' %}active{% endif %}" href="?sort=code&order=desc">
+            <i class="fas fa-sort-alpha-up me-2"></i>Kod (Z-A)
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Proje Adına Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'name' and current_order == 'asc' %}active{% endif %}" href="?sort=name&order=asc">
+            <i class="fas fa-sort-alpha-down me-2"></i>Ad (A-Z)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'name' and current_order == 'desc' %}active{% endif %}" href="?sort=name&order=desc">
+            <i class="fas fa-sort-alpha-up me-2"></i>Ad (Z-A)
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Tarihe Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'created_date' and current_order == 'desc' %}active{% endif %}" href="?sort=created_date&order=desc">
+            <i class="fas fa-calendar-alt me-2"></i>Yeni Oluşturulan
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'created_date' and current_order == 'asc' %}active{% endif %}" href="?sort=created_date&order=asc">
+            <i class="fas fa-calendar-alt me-2"></i>Eski Oluşturulan
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'modified_date' and current_order == 'desc' %}active{% endif %}" href="?sort=modified_date&order=desc">
+            <i class="fas fa-clock me-2"></i>Son Güncellenen
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'modified_date' and current_order == 'asc' %}active{% endif %}" href="?sort=modified_date&order=asc">
+            <i class="fas fa-clock me-2"></i>İlk Güncellenen
+          </a></li>
+        </ul>
+      </div>
+      <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#projeEkleModal">
+        <i class="fas fa-plus-circle me-2"></i>Proje Ekle
+      </button>
+    </div>
   </div>
 
   <!-- Projeler Tablosu -->
@@ -37,9 +84,51 @@
         <table class="table table-hover mb-0 align-middle">
           <thead class="table-light">
             <tr>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0">ID</th>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0">Proje Kodu</th>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0">Proje Adı</th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=id&order={% if current_sort == 'id' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  ID
+                  {% if current_sort == 'id' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=code&order={% if current_sort == 'code' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Proje Kodu
+                  {% if current_sort == 'code' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=name&order={% if current_sort == 'name' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Proje Adı
+                  {% if current_sort == 'name' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0">Açıklama</th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Eylemler</th>
             </tr>
