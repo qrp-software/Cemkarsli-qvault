@@ -119,11 +119,33 @@ class ProjectListView(LoginRequiredMixin, ListView):
         # Tüm projeleri birleştir
         all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
         
-        return all_projects
+        # Sıralama parametresini al
+        sort_by = self.request.GET.get('sort', 'id')
+        order = self.request.GET.get('order', 'asc')
+        
+        # Sıralama alanını belirle
+        if sort_by == 'code':
+            sort_field = 'code'
+        elif sort_by == 'name':
+            sort_field = 'name'
+        elif sort_by == 'created_date':
+            sort_field = 'created_date'
+        elif sort_by == 'modified_date':
+            sort_field = 'modified_date'
+        else:
+            sort_field = 'id'
+        
+        # Sıralama yönünü belirle
+        if order == 'desc':
+            sort_field = '-' + sort_field
+        
+        return all_projects.order_by(sort_field)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = ProjectForm()
+        context["current_sort"] = self.request.GET.get('sort', 'id')
+        context["current_order"] = self.request.GET.get('order', 'asc')
         return context
 
 
