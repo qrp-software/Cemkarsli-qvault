@@ -10,10 +10,3 @@ class EditUserForm(forms.ModelForm):
     class Meta:
         fields = ("first_name", "last_name", "email")
         model = User
-
-user = User.objects.get(username='cem.karsli')
-user.can_share_systems = True
-user.save()
-
-print(f"Kullanıcı: {user.username}")
-print(f"Sistem paylaşım yetkisi: {user.can_share_systems}")
