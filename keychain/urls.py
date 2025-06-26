@@ -19,4 +19,9 @@ urlpatterns = [
     path('delete_company/<int:company_id>/', views.CompanyDeleteAPIView.as_view(), name='delete_company'),
     path('get_company_details/<int:company_id>/', views.CompanyDetailAPIView.as_view(), name='get_company_details'),
     path('system/share/', views.SystemShareAPIView.as_view(), name='system_share'),
+    path("activities/", views.ActivityListView.as_view(), name="activity_list"),
+    path('add_activity/', views.ActivityCreateAPIView.as_view(), name='add_activity'),
+    path('update_activity/<int:activity_id>/', views.ActivityUpdateAPIView.as_view(), name='update_activity'),
+    path('delete_activity/<int:activity_id>/', views.ActivityDeleteAPIView.as_view(), name='delete_activity'),
+    path('get_activity_details/<int:activity_id>/', views.ActivityDetailAPIView.as_view(), name='get_activity_details'),
 ]

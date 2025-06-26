@@ -1,0 +1,587 @@
+{% extends 'keychain/base.html' %}
+{% load static %}
+
+{% block title %}Faaliyet Listeleri{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'keychain/CSS/activity_list.css' %}">
+<style>
+  .field-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+  }
+  .field-error.show {
+    display: block;
+  }
+  .form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+  .toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+  }
+  .toast {
+    min-width: 300px;
+    margin-bottom: 10px;
+  }
+  .toast-success {
+    background-color: rgba(25, 135, 84, 0.9);
+    color: white;
+  }
+  .toast-error {
+    background-color: rgba(220, 53, 69, 0.9);
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container-fluid px-4 py-5">
+  <!-- Başlık ve Buton -->
+  <div class="d-flex justify-content-between align-items-center mb-5">
+    <div class="position-relative">
+      <div class="rounded-4 p-4 shadow-lg" style="background: linear-gradient(135deg, rgba(13,110,253,0.1) 0%, rgba(13,110,253,0.05) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(13,110,253,0.2); min-width:380px;">
+        <div class="d-flex align-items-center">
+          <div class="bg-primary bg-gradient rounded-3 p-3 me-3 shadow-sm">
+            <i class="fas fa-tasks text-white fs-3"></i>
+          </div>
+          <div>
+            <h2 class="fw-bold text-dark mb-1 display-6">
+              Faaliyet Listeleri
+            </h2>
+            <p class="text-muted mb-0" style="font-size:1.1rem; letter-spacing:0.3px;">
+              Sistemde kayıtlı faaliyet listelerini yönetin
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="position-absolute" style="top:-10px; right:-10px; width:60px; height:60px; background: linear-gradient(135deg, #0d6efd, #6610f2); opacity:0.1; border-radius:50%; filter: blur(20px);"></div>
+    </div>
+    <div class="d-flex gap-3">
+      <!-- Sıralama Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-outline-primary btn-lg shadow-sm rounded-3 px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-sort me-2"></i>Sırala
+        </button>
+        <ul class="dropdown-menu">
+          <li><h6 class="dropdown-header">ID'ye Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'id' and current_order == 'asc' %}active{% endif %}" href="?sort=id&order=asc{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
+            <i class="fas fa-sort-numeric-down me-2"></i>ID (Küçükten Büyüğe)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'id' and current_order == 'desc' %}active{% endif %}" href="?sort=id&order=desc{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
+            <i class="fas fa-sort-numeric-up me-2"></i>ID (Büyükten Küçüğe)
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Projeye Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'project_code' and current_order == 'asc' %}active{% endif %}" href="?sort=project_code&order=asc">
+            <i class="fas fa-sort-alpha-down me-2"></i>Proje Kodu (A-Z)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'project_code' and current_order == 'desc' %}active{% endif %}" href="?sort=project_code&order=desc">
+            <i class="fas fa-sort-alpha-up me-2"></i>Proje Kodu (Z-A)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'project_name' and current_order == 'asc' %}active{% endif %}" href="?sort=project_name&order=asc">
+            <i class="fas fa-sort-alpha-down me-2"></i>Proje Adı (A-Z)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'project_name' and current_order == 'desc' %}active{% endif %}" href="?sort=project_name&order=desc">
+            <i class="fas fa-sort-alpha-up me-2"></i>Proje Adı (Z-A)
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Süreye Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'duration' and current_order == 'asc' %}active{% endif %}" href="?sort=duration&order=asc">
+            <i class="fas fa-sort-numeric-down me-2"></i>Süre (Az → Çok)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'duration' and current_order == 'desc' %}active{% endif %}" href="?sort=duration&order=desc">
+            <i class="fas fa-sort-numeric-up me-2"></i>Süre (Çok → Az)
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Tarihe Göre</h6></li>
+          <li><a class="dropdown-item {% if current_sort == 'activity_date' and current_order == 'desc' %}active{% endif %}" href="?sort=activity_date&order=desc">
+            <i class="fas fa-calendar-day me-2"></i>Faaliyet Tarihi (Yeni → Eski)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'activity_date' and current_order == 'asc' %}active{% endif %}" href="?sort=activity_date&order=asc">
+            <i class="fas fa-calendar-day me-2"></i>Faaliyet Tarihi (Eski → Yeni)
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'created_date' and current_order == 'desc' %}active{% endif %}" href="?sort=created_date&order=desc">
+            <i class="fas fa-calendar-alt me-2"></i>Yeni Oluşturulan
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'created_date' and current_order == 'asc' %}active{% endif %}" href="?sort=created_date&order=asc">
+            <i class="fas fa-calendar-alt me-2"></i>Eski Oluşturulan
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'modified_date' and current_order == 'desc' %}active{% endif %}" href="?sort=modified_date&order=desc">
+            <i class="fas fa-clock me-2"></i>Son Güncellenen
+          </a></li>
+          <li><a class="dropdown-item {% if current_sort == 'modified_date' and current_order == 'asc' %}active{% endif %}" href="?sort=modified_date&order=asc">
+            <i class="fas fa-clock me-2"></i>İlk Güncellenen
+          </a></li>
+        </ul>
+      </div>
+      <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#faaliyetEkleModal">
+        <i class="fas fa-plus-circle me-2"></i>Faaliyet Ekle
+      </button>
+    </div>
+  </div>
+
+  <!-- Modern Tarih Filtreleme -->
+  <div class="modern-filter-container mb-4">
+    <div class="modern-filter-card">
+      <button class="modern-filter-header" type="button" data-bs-toggle="collapse" data-bs-target="#dateFilterCollapse" aria-expanded="{% if start_date or end_date %}true{% else %}false{% endif %}" aria-controls="dateFilterCollapse">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <div class="d-flex align-items-center">
+            <div class="filter-icon">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="filter-title">
+              <h6 class="mb-0 fw-bold">Tarih Aralığı Filtresi</h6>
+              <small class="text-muted">Faaliyetleri tarihe göre filtreleyin</small>
+            </div>
+            {% if start_date or end_date %}
+            <div class="filter-badge">
+              <span class="modern-badge">
+                <i class="fas fa-filter me-1"></i>
+                {% if start_date and end_date %}
+                  {{ start_date|date:"d.m.Y" }} - {{ end_date|date:"d.m.Y" }}
+                {% elif start_date %}
+                  {{ start_date|date:"d.m.Y" }} →
+                {% elif end_date %}
+                  → {{ end_date|date:"d.m.Y" }}
+                {% endif %}
+              </span>
+            </div>
+            {% endif %}
+          </div>
+          <div class="d-flex align-items-center">
+            {% if start_date or end_date %}
+            <div class="filter-count">
+              <span class="count-badge">{{ filtered_count }}</span>
+              <small class="text-muted">faaliyet</small>
+            </div>
+            {% endif %}
+            <div class="chevron-container">
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+      </button>
+      
+      <div class="collapse {% if start_date or end_date %}show{% endif %}" id="dateFilterCollapse">
+        <div class="modern-filter-body">
+          <div class="row g-4">
+            <div class="col-lg-4">
+              <div class="modern-input-group">
+                <label class="modern-label">
+                  <i class="fas fa-calendar me-2"></i>Başlangıç Tarihi
+                </label>
+                <input type="date" class="modern-date-input" id="startDate" value="{{ start_date }}">
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="modern-input-group">
+                <label class="modern-label">
+                  <i class="fas fa-calendar me-2"></i>Bitiş Tarihi
+                </label>
+                <input type="date" class="modern-date-input" id="endDate" value="{{ end_date }}">
+              </div>
+            </div>
+            <div class="col-lg-4 d-flex align-items-end">
+              <div class="w-100">
+                <button type="button" class="modern-btn modern-btn-primary w-100" onclick="applyDateFilter()">
+                  <i class="fas fa-filter me-2"></i>Filtrele
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="modern-quick-filters">
+            <div class="quick-filter-title">
+              <i class="fas fa-bolt me-2"></i>Hızlı Filtreler
+            </div>
+            <div class="quick-filter-buttons">
+              <button type="button" class="modern-quick-btn" onclick="setTodayFilter()">
+                <i class="fas fa-calendar"></i>
+                <span>Bugün</span>
+              </button>
+              <button type="button" class="modern-quick-btn" onclick="setWeekFilter()">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Bu Hafta</span>
+              </button>
+              <button type="button" class="modern-quick-btn" onclick="setMonthFilter()">
+                <i class="fas fa-calendar"></i>
+                <span>Bu Ay</span>
+              </button>
+              <button type="button" class="modern-quick-btn modern-quick-btn-clear" onclick="clearDateFilter()">
+                <i class="fas fa-times"></i>
+                <span>Temizle</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faaliyetler Tablosu -->
+  <div class="card shadow border-0 rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=id&order={% if current_sort == 'id' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  ID
+                  {% if current_sort == 'id' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=project_code&order={% if current_sort == 'project_code' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Proje Kodu
+                  {% if current_sort == 'project_code' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=project_name&order={% if current_sort == 'project_name' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Proje Adı
+                  {% if current_sort == 'project_name' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">Faaliyet</th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=duration&order={% if current_sort == 'duration' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Süre
+                  {% if current_sort == 'duration' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">Faturlanabilirlik</th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=primary_person&order={% if current_sort == 'primary_person' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Kişi
+                  {% if current_sort == 'primary_person' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">İkincil Kişi</th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=activity_date&order={% if current_sort == 'activity_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Faaliyet Tarihi
+                  {% if current_sort == 'activity_date' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Eylemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for activity in activities %}
+            <tr>
+              <td class="px-4 py-4 fw-medium">{{ activity.id }}</td>
+              <td class="px-4 py-4 fw-medium">{{ activity.project.code }}</td>
+              <td class="px-4 py-4 fw-medium">{{ activity.project.name }}</td>
+              <td class="px-4 py-4 text-muted">{{ activity.activity_description|truncatewords:10 }}</td>
+              <td class="px-4 py-4 fw-medium">{{ activity.duration }} saat</td>
+              <td class="px-4 py-4 fw-medium">
+                {% if activity.is_billable == 'yes' %}Evet{% else %}Hayır{% endif %}
+              </td>
+              <td class="px-4 py-4 fw-medium">
+                {% if activity.primary_person %}
+                  {{ activity.primary_person.get_full_name|default:activity.primary_person.username }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="px-4 py-4 text-muted">
+                {% if activity.secondary_person %}
+                  {{ activity.secondary_person.get_full_name|default:activity.secondary_person.username }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="px-4 py-4 fw-medium">
+                {{ activity.activity_date|date:"d.m.Y" }}
+              </td>
+              <td class="px-4 py-4 text-center">
+                {% if activity.owner == user %}
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#faaliyetDuzenleModal"
+                          data-activity-id="{{ activity.id }}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rounded-end-3 px-3"
+                          data-bs-toggle="modal"
+                          data-bs-target="#faaliyetSilModal"
+                          data-id="{{ activity.id }}"
+                          data-description="{{ activity.activity_description|truncatewords:5 }}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+                {% else %}
+                <span class="text-muted small">
+                  <i class="fas fa-eye me-1"></i>Sadece Görüntüleme
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="10" class="text-center py-5 text-muted">
+                <i class="fas fa-tasks fs-1 mb-3 opacity-25"></i>
+                <h5 class="text-muted">Henüz faaliyet bulunmamaktadır</h5>
+                <p class="mb-0">İlk faaliyetinizi eklemek için "Faaliyet Ekle" butonuna tıklayın.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Faaliyet Ekle Modal -->
+<div class="modal fade" id="faaliyetEkleModal" tabindex="-1" aria-labelledby="faaliyetEkleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 bg-primary bg-opacity-10">
+        <h5 class="modal-title fw-bold text-primary" id="faaliyetEkleModalLabel">
+          <i class="fas fa-plus-circle me-2"></i>Yeni Faaliyet Ekle
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="projeSelect" class="form-label fw-medium">Proje <span class="text-danger">*</span></label>
+              <select class="form-control" id="projeSelect" required>
+                <option value="">Proje seçiniz...</option>
+                {% for project in projects %}
+                  <option value="{{ project.id }}">{{ project.code }} - {{ project.name }}</option>
+                {% endfor %}
+              </select>
+              <div class="field-error" id="projeSelect-error">Lütfen bir proje seçiniz.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="sure" class="form-label fw-medium">Süre (saat) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="sure" placeholder="Saat giriniz" step="0.1" min="0" required>
+              <div class="field-error" id="sure-error">Lütfen geçerli bir süre giriniz.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="faaliyetTarihi" class="form-label fw-medium">Faaliyet Tarihi <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="faaliyetTarihi" required>
+              <div class="field-error" id="faaliyetTarihi-error">Lütfen faaliyet tarihini seçiniz.</div>
+            </div>
+            <div class="col-12">
+              <label for="faaliyetAciklama" class="form-label fw-medium">Faaliyet Açıklaması <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="faaliyetAciklama" rows="4" placeholder="Faaliyet açıklamasını detaylı olarak giriniz" required></textarea>
+              <div class="field-error" id="faaliyetAciklama-error">Lütfen faaliyet açıklamasını giriniz.</div>
+            </div>
+            <div class="col-md-4">
+              <label for="faturlanabilirlik" class="form-label fw-medium">Faturlanabilirlik</label>
+              <select class="form-control" id="faturlanabilirlik">
+                <option value="yes">Evet</option>
+                <option value="no">Hayır</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="kisiSelect" class="form-label fw-medium">Kişi <span class="text-danger">*</span></label>
+              <select class="form-control" id="kisiSelect" required>
+                <option value="">Kişi seçiniz...</option>
+                {% for user_item in users %}
+                  <option value="{{ user_item.id }}">{{ user_item.get_full_name|default:user_item.username }}</option>
+                {% endfor %}
+              </select>
+              <div class="field-error" id="kisiSelect-error">Lütfen bir kişi seçiniz.</div>
+            </div>
+            <div class="col-md-4">
+              <label for="ikincilKisiSelect" class="form-label fw-medium">İkincil Kişi</label>
+              <select class="form-control" id="ikincilKisiSelect">
+                <option value="">İkincil kişi seçiniz...</option>
+                {% for user_item in users %}
+                  <option value="{{ user_item.id }}">{{ user_item.get_full_name|default:user_item.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" onclick="faaliyetEkle()">
+          <i class="fas fa-save me-2"></i>Kaydet
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Faaliyet Düzenle Modal -->
+<div class="modal fade" id="faaliyetDuzenleModal" tabindex="-1" aria-labelledby="faaliyetDuzenleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 bg-primary bg-opacity-10">
+        <h5 class="modal-title fw-bold text-primary" id="faaliyetDuzenleModalLabel">
+          <i class="fas fa-edit me-2"></i>Faaliyet Düzenle
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="duzenleForm">
+          <input type="hidden" id="duzenle_faaliyetId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="duzenle_projeSelect" class="form-label fw-medium">Proje <span class="text-danger">*</span></label>
+              <select class="form-control" id="duzenle_projeSelect" required>
+                <option value="">Proje seçiniz...</option>
+                {% for project in projects %}
+                  <option value="{{ project.id }}">{{ project.code }} - {{ project.name }}</option>
+                {% endfor %}
+              </select>
+              <div class="field-error" id="duzenle_projeSelect-error">Lütfen bir proje seçiniz.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="duzenle_sure" class="form-label fw-medium">Süre (saat) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="duzenle_sure" placeholder="Saat giriniz" step="0.1" min="0" required>
+              <div class="field-error" id="duzenle_sure-error">Lütfen geçerli bir süre giriniz.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="duzenle_faaliyetTarihi" class="form-label fw-medium">Faaliyet Tarihi <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="duzenle_faaliyetTarihi" required>
+              <div class="field-error" id="duzenle_faaliyetTarihi-error">Lütfen faaliyet tarihini seçiniz.</div>
+            </div>
+            <div class="col-12">
+              <label for="duzenle_faaliyetAciklama" class="form-label fw-medium">Faaliyet Açıklaması <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="duzenle_faaliyetAciklama" rows="4" placeholder="Faaliyet açıklamasını detaylı olarak giriniz" required></textarea>
+              <div class="field-error" id="duzenle_faaliyetAciklama-error">Lütfen faaliyet açıklamasını giriniz.</div>
+            </div>
+            <div class="col-md-4">
+              <label for="duzenle_faturlanabilirlik" class="form-label fw-medium">Faturlanabilirlik</label>
+              <select class="form-control" id="duzenle_faturlanabilirlik">
+                <option value="yes">Evet</option>
+                <option value="no">Hayır</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="duzenle_kisiSelect" class="form-label fw-medium">Kişi <span class="text-danger">*</span></label>
+              <select class="form-control" id="duzenle_kisiSelect" required>
+                <option value="">Kişi seçiniz...</option>
+                {% for user_item in users %}
+                  <option value="{{ user_item.id }}">{{ user_item.get_full_name|default:user_item.username }}</option>
+                {% endfor %}
+              </select>
+              <div class="field-error" id="duzenle_kisiSelect-error">Lütfen bir kişi seçiniz.</div>
+            </div>
+            <div class="col-md-4">
+              <label for="duzenle_ikincilKisiSelect" class="form-label fw-medium">İkincil Kişi</label>
+              <select class="form-control" id="duzenle_ikincilKisiSelect">
+                <option value="">İkincil kişi seçiniz...</option>
+                {% for user_item in users %}
+                  <option value="{{ user_item.id }}">{{ user_item.get_full_name|default:user_item.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" onclick="faaliyetGuncelle()">
+          <i class="fas fa-save me-2"></i>Güncelle
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Faaliyet Sil Modal -->
+<div class="modal fade" id="faaliyetSilModal" tabindex="-1" aria-labelledby="faaliyetSilModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header border-0 bg-danger bg-opacity-10">
+        <h5 class="modal-title fw-bold text-danger" id="faaliyetSilModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>Faaliyet Sil
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="sil_faaliyetId">
+        <p class="mb-3">Aşağıdaki faaliyeti silmek istediğinizden emin misiniz?</p>
+        <div class="alert alert-light border">
+          <h6 class="mb-1 fw-bold" id="sil_faaliyetAciklama"></h6>
+          <small class="text-muted">Bu işlem geri alınamaz!</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+        <button type="button" class="btn btn-danger" onclick="faaliyetSil()">
+          <i class="fas fa-trash me-2"></i>Sil
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'keychain/js/activity_list.js' %}"></script>
+{% endblock %}
