@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <td>{% trans 'Şifre' %}:</td>
-                <td>************ <a href="{% url 'users:password_change' %}">Değiştirmek için Tıklayınız</a></td>
+                <td>************ <a href="#" onclick="alert('Şifre değiştirme özelliği yakında eklenecektir.')">Değiştirmek için Tıklayınız</a></td>
             </tr>
             <tr>
                 <td>{% trans 'İsim' %}:</td>
@@ -39,10 +39,6 @@
             <tr>
                 <td>{% trans 'Soyisim' %}:</td>
                 <td>{% render_field form.last_name class="form-control form-control" %}</td>
-            </tr>
-            <tr>
-                <td>{% trans 'Kurum' %}:</td>
-                <td>{% render_field form.institution class="form-control" %}</td>
             </tr>
 
 

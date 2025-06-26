@@ -1,0 +1,314 @@
+{% extends 'keychain/base.html' %}
+{% load i18n %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}
+{% trans "Yönetici Ayarları" %}
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/superuser_settings.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% csrf_token %}
+    
+    <!-- Başlık Bölümü -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-header">
+                <div class="admin-header-content">
+                    <h1>{% trans 'Yönetici Ayarları' %}</h1>
+                    <p>{% trans 'Kullanıcı hesaplarını yönetin ve yetkilerini düzenleyin' %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Mesajları -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Yeni Kullanıcı Oluşturma -->
+        <div class="col-lg-4 mb-4">
+            <div class="card admin-card">
+                <div class="card-header admin-card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>{% trans 'Yeni Kullanıcı Ekle' %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="createUserForm" class="fade-in">
+                        {% csrf_token %}
+                        
+                        {% if create_user_form.errors %}
+                            <div class="alert alert-danger">{{ create_user_form.errors }}</div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ create_user_form.username.id_for_label }}" class="form-label">
+                                {% trans 'Kullanıcı Adı' %} <span class="text-danger">*</span>
+                            </label>
+                            {% render_field create_user_form.username class="form-control" %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ create_user_form.email.id_for_label }}" class="form-label">
+                                {% trans 'Email' %} <span class="text-danger">*</span>
+                            </label>
+                            {% render_field create_user_form.email class="form-control" %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ create_user_form.first_name.id_for_label }}" class="form-label">
+                                    {% trans 'İsim' %} <span class="text-danger">*</span>
+                                </label>
+                                {% render_field create_user_form.first_name class="form-control" %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ create_user_form.last_name.id_for_label }}" class="form-label">
+                                    {% trans 'Soyisim' %} <span class="text-danger">*</span>
+                                </label>
+                                {% render_field create_user_form.last_name class="form-control" %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ create_user_form.password1.id_for_label }}" class="form-label">
+                                {% trans 'Şifre' %} <span class="text-danger">*</span>
+                            </label>
+                            {% render_field create_user_form.password1 class="form-control" %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ create_user_form.password2.id_for_label }}" class="form-label">
+                                {% trans 'Şifre Tekrar' %} <span class="text-danger">*</span>
+                            </label>
+                            {% render_field create_user_form.password2 class="form-control" %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {% render_field create_user_form.is_superuser class="form-check-input" %}
+                                <label class="form-check-label" for="{{ create_user_form.is_superuser.id_for_label }}">
+                                    {% trans 'Yönetici Yetkisi' %}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {% render_field create_user_form.can_share_systems class="form-check-input" %}
+                                <label class="form-check-label" for="{{ create_user_form.can_share_systems.id_for_label }}">
+                                    {% trans 'Sistem Paylaşım Yetkisi' %}
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-2"></i>{% trans 'Kullanıcı Oluştur' %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kullanıcı Listesi -->
+        <div class="col-lg-8 mb-4">
+            <div class="card admin-card">
+                <div class="card-header admin-card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>{% trans 'Kullanıcı Yönetimi' %}
+                        <span class="badge bg-light text-dark ms-2">{{ users.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>{% trans 'Kullanıcı' %}</th>
+                                    <th>{% trans 'Email' %}</th>
+                                    <th>{% trans 'Tarih' %}</th>
+                                    <th>{% trans 'Yetkiler' %}</th>
+                                    <th>{% trans 'İşlemler' %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_item in users %}
+                                <tr id="user-row-{{ user_item.id }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar">
+                                                {{ user_item.first_name|first|default:user_item.username|first|upper }}
+                                            </div>
+                                            <div class="ms-2">
+                                                <div class="fw-bold">
+                                                    {{ user_item.first_name }} {{ user_item.last_name }}
+                                                    {% if user_item == user %}
+                                                        <span class="badge bg-success ms-1">{% trans 'Siz' %}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <small class="text-muted">@{{ user_item.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user_item.email }}</td>
+                                    <td><small>{{ user_item.date_joined|date:"d.m.Y H:i" }}</small></td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% if user_item.is_superuser %}
+                                                <span class="badge bg-danger">{% trans 'Yönetici' %}</span>
+                                            {% endif %}
+                                            {% if user_item.is_staff %}
+                                                <span class="badge bg-warning">{% trans 'Personel' %}</span>
+                                            {% endif %}
+                                            {% if user_item.can_share_systems %}
+                                                <span class="badge bg-info">{% trans 'Paylaşım' %}</span>
+                                            {% endif %}
+                                            {% if not user_item.is_active %}
+                                                <span class="badge bg-secondary">{% trans 'Pasif' %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary edit-user-btn" 
+                                                    data-user-id="{{ user_item.id }}" title="{% trans 'Düzenle' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            {% if user_item != user %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn" 
+                                                    data-user-id="{{ user_item.id }}" data-username="{{ user_item.username }}" 
+                                                    title="{% trans 'Sil' %}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        {% trans 'Hiç kullanıcı bulunamadı.' %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kullanıcı Düzenleme Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editModalTitle">{% trans 'Kullanıcı Yetkilerini Düzenle' %}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="editModalLoading" class="text-center py-5 loading-container">
+                    <div class="spinner-border text-primary scale-in" role="status">
+                        <span class="visually-hidden">{% trans 'Yükleniyor...' %}</span>
+                    </div>
+                    <div class="mt-3 fade-in">{% trans 'Kullanıcı bilgileri yükleniyor...' %}</div>
+                </div>
+                
+                <form id="editUserForm" class="slide-in-left" style="display: none;">
+                    <input type="hidden" id="editUserId" value="">
+                    
+                    <div class="permission-group">
+                        <div class="d-flex align-items-center">
+                            <div class="permission-icon bg-danger">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="ms-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editIsSuperuser">
+                                    <label class="form-check-label fw-bold" for="editIsSuperuser">
+                                        {% trans 'Yönetici Yetkisi' %}
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans 'Tüm yetkilere sahip olur ve sistem ayarlarını düzenleyebilir' %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-group">
+                        <div class="d-flex align-items-center">
+                            <div class="permission-icon bg-warning">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="ms-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editIsStaff">
+                                    <label class="form-check-label fw-bold" for="editIsStaff">
+                                        {% trans 'Personel Yetkisi' %}
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans 'Admin paneline erişim sağlar' %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-group">
+                        <div class="d-flex align-items-center">
+                            <div class="permission-icon bg-info">
+                                <i class="fas fa-share-alt"></i>
+                            </div>
+                            <div class="ms-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editCanShareSystems">
+                                    <label class="form-check-label fw-bold" for="editCanShareSystems">
+                                        {% trans 'Sistem Paylaşım Yetkisi' %}
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans 'Sistemleri diğer kullanıcılarla paylaşabilir' %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-group">
+                        <div class="d-flex align-items-center">
+                            <div class="permission-icon bg-success">
+                                <i class="fas fa-toggle-on"></i>
+                            </div>
+                            <div class="ms-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editIsActive">
+                                    <label class="form-check-label fw-bold" for="editIsActive">
+                                        {% trans 'Aktif Durum' %}
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans 'Kullanıcı sisteme giriş yapabilir ve hesabını kullanabilir' %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'İptal' %}</button>
+                <button type="button" class="btn btn-primary" onclick="saveUserPermissions()">{% trans 'Kaydet' %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/superuser_settings.js' %}"></script>
+{% endblock extra_js %} 
