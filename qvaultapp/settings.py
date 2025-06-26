@@ -26,8 +26,6 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-
-
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 AUTH_USER_MODEL = 'users.User'
@@ -83,7 +81,20 @@ WSGI_APPLICATION = 'qvaultapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {"default": env.db("DB_URL", default="sqlite:///db.sqlite3")}
+
+if env("DB_URL", default=None):
+    DATABASES = {"default": env.db("DB_URL", default="sqlite:///db.sqlite3")}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "HOST": env("DB_HOST"),
+            "PORT": env("DB_PORT"),
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+        }
+    }
 
 
 
