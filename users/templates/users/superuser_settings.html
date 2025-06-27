@@ -12,7 +12,7 @@
 {% endblock extra_css %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh;">
     {% csrf_token %}
     
     <!-- Başlık Bölümü -->
@@ -133,7 +133,7 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead class="table-primary">
+                            <thead>
                                 <tr>
                                     <th>{% trans 'Kullanıcı' %}</th>
                                     <th>{% trans 'Email' %}</th>
