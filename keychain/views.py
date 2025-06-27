@@ -8,11 +8,23 @@ from django.utils.decorators import method_decorator
 from .models import Project, Company, SystemShare, Activity
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from .forms import ProjectForm, CompanyForm, ActivityForm
 import json
 from users.models import User
 from django.db import models
+import pandas as pd
+from io import BytesIO
+from django.utils import timezone
+# PDF export için xhtml2pdf import'ları - isteğe bağlı
+try:
+    from xhtml2pdf import pisa
+    from django.template.loader import render_to_string
+    XHTML2PDF_AVAILABLE = True
+except ImportError:
+    XHTML2PDF_AVAILABLE = False
+
+import os
 
 # Constants
 SYSTEM_TYPE_CHOICES = {
@@ -724,6 +736,231 @@ class ActivityDeleteAPIView(LoginRequiredMixin, View):
             return create_error_response('Faaliyet bulunamadı')
         except Exception as e:
             return create_error_response(str(e))
+
+
+class ActivityExportExcelView(LoginRequiredMixin, View):
+    def get(self, request):
+        try:
+            # ActivityListView'deki queryset mantığını kullan
+            user = request.user
+            queryset = Activity.objects.filter(
+                models.Q(owner=user) |
+                models.Q(primary_person=user) |
+                models.Q(secondary_person=user)
+            ).distinct().select_related('project', 'primary_person', 'secondary_person', 'owner')
+            
+            # Tarih filtreleme
+            start_date = request.GET.get('start_date')
+            end_date = request.GET.get('end_date')
+            
+            if start_date:
+                queryset = queryset.filter(activity_date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(activity_date__lte=end_date)
+            
+            # Sıralama
+            sort_by = request.GET.get('sort', 'id')
+            order = request.GET.get('order', 'desc')
+            
+            if sort_by == 'project_code':
+                sort_field = 'project__code'
+            elif sort_by == 'project_name':
+                sort_field = 'project__name'
+            elif sort_by == 'duration':
+                sort_field = 'duration'
+            elif sort_by == 'is_billable':
+                sort_field = 'is_billable'
+            elif sort_by == 'primary_person':
+                sort_field = 'primary_person__username'
+            elif sort_by == 'activity_date':
+                sort_field = 'activity_date'
+            elif sort_by == 'created_date':
+                sort_field = 'created_date'
+            elif sort_by == 'modified_date':
+                sort_field = 'modified_date'
+            else:
+                sort_field = 'id'
+            
+            if order == 'desc':
+                sort_field = '-' + sort_field
+            
+            activities = queryset.order_by(sort_field)
+            
+            # Excel verisi hazırla
+            data = []
+            for activity in activities:
+                data.append({
+                    'ID': activity.id,
+                    'Proje Kodu': activity.project.code,
+                    'Proje Adı': activity.project.name,
+                    'Faaliyet Açıklaması': activity.activity_description,
+                    'Süre (Saat)': float(activity.duration),
+                    'Faturlanabilirlik': 'Evet' if activity.is_billable == 'yes' else 'Hayır',
+                    'Kişi': activity.primary_person.get_full_name() or activity.primary_person.username if activity.primary_person else '',
+                    'İkincil Kişi': activity.secondary_person.get_full_name() or activity.secondary_person.username if activity.secondary_person else '',
+                    'Faaliyet Tarihi': activity.activity_date.strftime('%d.%m.%Y'),
+                    'Oluşturan': activity.owner.get_full_name() or activity.owner.username,
+                    'Oluşturma Tarihi': activity.created_date.strftime('%d.%m.%Y %H:%M'),
+                    'Güncelleme Tarihi': activity.modified_date.strftime('%d.%m.%Y %H:%M')
+                })
+            
+            # DataFrame oluştur
+            df = pd.DataFrame(data)
+            
+            # Excel dosyası oluştur
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Faaliyetler', index=False)
+                
+                # Worksheet'i al ve formatla
+                worksheet = writer.sheets['Faaliyetler']
+                
+                # Sütun genişliklerini ayarla
+                for column in worksheet.columns:
+                    max_length = 15
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
+            
+            output.seek(0)
+            
+            # Dosya adı oluştur
+            current_date = timezone.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'faaliyetler_{current_date}.xlsx'
+            
+            # Response oluştur
+            response = HttpResponse(
+                output.read(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+
+class ActivityExportPDFView(LoginRequiredMixin, View):
+    def get(self, request):
+        # xhtml2pdf kontrolü
+        if not XHTML2PDF_AVAILABLE:
+            return JsonResponse({
+                'success': False, 
+                'error': 'PDF export özelliği için xhtml2pdf kütüphanesi gereklidir. Lütfen "pip install xhtml2pdf" komutunu çalıştırın.'
+            })
+        
+        try:
+            # ActivityListView'deki queryset mantığını kullan
+            user = request.user
+            queryset = Activity.objects.filter(
+                models.Q(owner=user) |
+                models.Q(primary_person=user) |
+                models.Q(secondary_person=user)
+            ).distinct().select_related('project', 'primary_person', 'secondary_person', 'owner')
+            
+            # Tarih filtreleme
+            start_date = request.GET.get('start_date')
+            end_date = request.GET.get('end_date')
+            
+            if start_date:
+                queryset = queryset.filter(activity_date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(activity_date__lte=end_date)
+            
+            # Sıralama
+            sort_by = request.GET.get('sort', 'id')
+            order = request.GET.get('order', 'desc')
+            
+            if sort_by == 'project_code':
+                sort_field = 'project__code'
+            elif sort_by == 'project_name':
+                sort_field = 'project__name'
+            elif sort_by == 'duration':
+                sort_field = 'duration'
+            elif sort_by == 'is_billable':
+                sort_field = 'is_billable'
+            elif sort_by == 'primary_person':
+                sort_field = 'primary_person__username'
+            elif sort_by == 'activity_date':
+                sort_field = 'activity_date'
+            elif sort_by == 'created_date':
+                sort_field = 'created_date'
+            elif sort_by == 'modified_date':
+                sort_field = 'modified_date'
+            else:
+                sort_field = 'id'
+            
+            if order == 'desc':
+                sort_field = '-' + sort_field
+            
+            activities = queryset.order_by(sort_field)
+            
+            # İstatistikler hesapla
+            total_duration = sum(float(a.duration) for a in activities)
+            billable_activities = activities.filter(is_billable='yes').count()
+            billable_duration = sum(float(a.duration) for a in activities.filter(is_billable='yes'))
+            
+            # Tarih objelerini düzenle
+            start_date_obj = None
+            end_date_obj = None
+            
+            if start_date:
+                try:
+                    import datetime
+                    start_date_obj = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+                except:
+                    pass
+            
+            if end_date:
+                try:
+                    import datetime
+                    end_date_obj = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+                except:
+                    pass
+            
+            # Template context hazırla
+            context = {
+                'activities': activities,
+                'start_date': start_date_obj,
+                'end_date': end_date_obj,
+                'total_duration': total_duration,
+                'billable_activities': billable_activities,
+                'billable_duration': billable_duration,
+                'current_date': timezone.now(),
+                'user': request.user,
+            }
+            
+            # HTML'i render et
+            html_string = render_to_string('keychain/pdf_export.html', context)
+            
+            # PDF buffer oluştur
+            result = BytesIO()
+            
+            # HTML'i PDF'e dönüştür
+            pdf = pisa.pisaDocument(BytesIO(html_string.encode("UTF-8")), result)
+            
+            if not pdf.err:
+                # Dosya adı oluştur
+                current_date = timezone.now().strftime('%Y%m%d_%H%M%S')
+                filename = f'faaliyetler_{current_date}.pdf'
+                
+                # Response oluştur
+                response = HttpResponse(result.getvalue(), content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
+                return response
+            else:
+                return JsonResponse({'success': False, 'error': 'PDF oluşturulurken hata oluştu'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
 
 
 class ActivityDetailAPIView(LoginRequiredMixin, View):

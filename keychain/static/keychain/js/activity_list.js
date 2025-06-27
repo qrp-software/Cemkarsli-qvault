@@ -468,4 +468,60 @@ function faaliyetSil() {
         deleteButton.innerHTML = originalText;
         deleteButton.disabled = false;
     });
+}
+
+// Export Fonksiyonları
+function getExportParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const params = {};
+    
+    // Mevcut filtreleme ve sıralama parametrelerini al
+    if (urlParams.has('sort')) params.sort = urlParams.get('sort');
+    if (urlParams.has('order')) params.order = urlParams.get('order');
+    if (urlParams.has('start_date')) params.start_date = urlParams.get('start_date');
+    if (urlParams.has('end_date')) params.end_date = urlParams.get('end_date');
+    
+    return params;
+}
+
+function exportToExcel() {
+    const params = getExportParams();
+    const queryString = new URLSearchParams(params).toString();
+    const exportUrl = `/keychain/export_activities_excel/?${queryString}`;
+    
+    showToast('📊 Excel dosyası hazırlanıyor, lütfen bekleyiniz...', 'success');
+    
+    // Dosyayı indir
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // İndirme işlemi tamamlandıktan sonra mesaj göster
+    setTimeout(() => {
+        showToast('✅ Excel dosyası başarıyla indirildi!', 'success');
+    }, 1000);
+}
+
+function exportToPDF() {
+    const params = getExportParams();
+    const queryString = new URLSearchParams(params).toString();
+    const exportUrl = `/keychain/export_activities_pdf/?${queryString}`;
+    
+    showToast('📄 PDF dosyası hazırlanıyor, lütfen bekleyiniz...', 'success');
+    
+    // Dosyayı indir
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // İndirme işlemi tamamlandıktan sonra mesaj göster
+    setTimeout(() => {
+        showToast('✅ PDF dosyası başarıyla indirildi!', 'success');
+    }, 1000);
 } 

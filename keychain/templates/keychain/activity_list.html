@@ -123,6 +123,23 @@
           </a></li>
         </ul>
       </div>
+      
+      <!-- Export Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-outline-success btn-lg shadow-sm rounded-3 px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-download me-2"></i>Dışa Aktar
+        </button>
+        <ul class="dropdown-menu">
+          <li><h6 class="dropdown-header">Export Seçenekleri</h6></li>
+          <li><a class="dropdown-item" href="#" onclick="exportToExcel()">
+            <i class="fas fa-file-excel me-2 text-success"></i>Excel'e Aktar
+          </a></li>
+          <li><a class="dropdown-item" href="#" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf me-2 text-danger"></i>PDF'e Aktar
+          </a></li>
+        </ul>
+      </div>
+      
       <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#faaliyetEkleModal">
         <i class="fas fa-plus-circle me-2"></i>Faaliyet Ekle
       </button>
@@ -250,6 +267,21 @@
                 </a>
               </th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=activity_date&order={% if current_sort == 'activity_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Faaliyet Tarihi
+                  {% if current_sort == 'activity_date' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
                 <a href="?sort=project_code&order={% if current_sort == 'project_code' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
                    class="text-decoration-none text-secondary d-flex align-items-center">
                   Proje Kodu
@@ -312,21 +344,7 @@
                 </a>
               </th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0">İkincil Kişi</th>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0">
-                <a href="?sort=activity_date&order={% if current_sort == 'activity_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
-                   class="text-decoration-none text-secondary d-flex align-items-center">
-                  Faaliyet Tarihi
-                  {% if current_sort == 'activity_date' %}
-                    {% if current_order == 'asc' %}
-                      <i class="fas fa-sort-up ms-1"></i>
-                    {% else %}
-                      <i class="fas fa-sort-down ms-1"></i>
-                    {% endif %}
-                  {% else %}
-                    <i class="fas fa-sort ms-1 opacity-50"></i>
-                  {% endif %}
-                </a>
-              </th>
+              
               <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Eylemler</th>
             </tr>
           </thead>
@@ -334,6 +352,9 @@
             {% for activity in activities %}
             <tr>
               <td class="px-4 py-4 fw-medium">{{ activity.id }}</td>
+              <td class="px-4 py-4 fw-medium">
+                {{ activity.activity_date|date:"d.m.Y" }}
+              </td>
               <td class="px-4 py-4 fw-medium">{{ activity.project.code }}</td>
               <td class="px-4 py-4 fw-medium">{{ activity.project.name }}</td>
               <td class="px-4 py-4 text-muted">{{ activity.activity_description|truncatewords:10 }}</td>
@@ -355,9 +376,7 @@
                   —
                 {% endif %}
               </td>
-              <td class="px-4 py-4 fw-medium">
-                {{ activity.activity_date|date:"d.m.Y" }}
-              </td>
+           
               <td class="px-4 py-4 text-center">
                 {% if activity.owner == user %}
                 <div class="btn-group" role="group">

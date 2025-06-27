@@ -24,4 +24,6 @@ urlpatterns = [
     path('update_activity/<int:activity_id>/', views.ActivityUpdateAPIView.as_view(), name='update_activity'),
     path('delete_activity/<int:activity_id>/', views.ActivityDeleteAPIView.as_view(), name='delete_activity'),
     path('get_activity_details/<int:activity_id>/', views.ActivityDetailAPIView.as_view(), name='get_activity_details'),
+    path('export_activities_excel/', views.ActivityExportExcelView.as_view(), name='export_activities_excel'),
+    path('export_activities_pdf/', views.ActivityExportPDFView.as_view(), name='export_activities_pdf'),
 ]
