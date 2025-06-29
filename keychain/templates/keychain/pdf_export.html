@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faaliyet Listeleri Raporu</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .info-cards {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .info-card h3 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .date-filter {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .date-filter h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .modern-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modern-table thead th {
+            padding: 15px 8px;
+            text-align: left;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 10px;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .modern-table tbody tr:nth-child(even) {
+            background-color: #f8f9ff;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .modern-table tbody td {
+            padding: 12px 8px;
+            vertical-align: middle;
+        }
+
+        .id-badge {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .project-badge {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .duration-badge {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .billable-yes {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .billable-no {
+            background: linear-gradient(135deg, #ffa085 0%, #ffb085 100%);
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .person-name {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .activity-desc {
+            color: #666;
+            line-height: 1.4;
+            max-width: 200px;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .footer-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+
+        .footer-stat {
+            text-align: center;
+        }
+
+        .footer-stat h4 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .footer-stat p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.1;
+            font-size: 12px;
+            color: #666;
+            transform: rotate(-45deg);
+        }
+
+        /* Responsive adjustments for smaller content */
+        @media print {
+            .info-cards {
+                display: block;
+            }
+            .info-card {
+                margin-bottom: 15px;
+            }
+            .footer-stats {
+                display: block;
+            }
+            .footer-stat {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">QVault System</div>
+    
+    <!-- Header -->
+    <div class="header">
+        <h1>📊 Faaliyet Listeleri Raporu</h1>
+        <p>Detaylı faaliyet analizi ve raporlama</p>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="info-cards">
+        <div class="info-card">
+            <h3>{{ activities.count }}</h3>
+            <p>Toplam Faaliyet</p>
+        </div>
+        <div class="info-card">
+            <h3>{{ total_duration }}h</h3>
+            <p>Toplam Süre</p>
+        </div>
+        <div class="info-card">
+            <h3>{{ billable_activities }}</h3>
+            <p>Faturlanabilir</p>
+        </div>
+    </div>
+
+    <!-- Date Filter Info -->
+    {% if start_date or end_date %}
+    <div class="date-filter">
+        <h3>📅 Tarih Aralığı Filtresi</h3>
+        <p>
+            {% if start_date and end_date %}
+                {{ start_date|date:"d.m.Y" }} - {{ end_date|date:"d.m.Y" }}
+            {% elif start_date %}
+                {{ start_date|date:"d.m.Y" }} tarihinden itibaren
+            {% elif end_date %}
+                {{ end_date|date:"d.m.Y" }} tarihine kadar
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Activities Table -->
+    <div class="table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Proje Kodu</th>
+                    <th>Proje Adı</th>
+                    <th>Faaliyet Açıklaması</th>
+                    <th>Süre</th>
+                    <th>Faturlanabilir</th>
+                    <th>Kişi</th>
+                    <th>İkincil Kişi</th>
+                    <th>Tarih</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                <tr>
+                    <td><span class="id-badge">{{ activity.id }}</span></td>
+                    <td><span class="project-badge">{{ activity.project.code }}</span></td>
+                    <td><strong>{{ activity.project.name }}</strong></td>
+                    <td class="activity-desc">{{ activity.activity_description|truncatewords:8 }}</td>
+                    <td><span class="duration-badge">{{ activity.duration }}h</span></td>
+                    <td>
+                        {% if activity.is_billable == 'yes' %}
+                            <span class="billable-yes">✓ Evet</span>
+                        {% else %}
+                            <span class="billable-no">✗ Hayır</span>
+                        {% endif %}
+                    </td>
+                    <td class="person-name">
+                        {% if activity.primary_person %}
+                            {{ activity.primary_person.get_full_name|default:activity.primary_person.username }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="person-name">
+                        {% if activity.secondary_person %}
+                            {{ activity.secondary_person.get_full_name|default:activity.secondary_person.username }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ activity.activity_date|date:"d.m.Y" }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+                        <h3>📋 Faaliyet Bulunamadı</h3>
+                        <p>Seçilen kriterlere uygun faaliyet bulunmamaktadır.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer with Statistics -->
+    <div class="footer">
+        <div class="footer-stats">
+            <div class="footer-stat">
+                <h4>{{ activities.count }}</h4>
+                <p>Toplam Faaliyet Sayısı</p>
+            </div>
+            <div class="footer-stat">
+                <h4>{{ total_duration }}h</h4>
+                <p>Toplam Çalışma Süresi</p>
+            </div>
+            <div class="footer-stat">
+                <h4>{{ billable_duration }}h</h4>
+                <p>Faturlanabilir Süre</p>
+            </div>
+        </div>
+        <p style="margin-top: 15px; font-size: 12px;">
+            📅 Rapor Oluşturma Tarihi: {{ current_date|date:"d.m.Y H:i" }} | 
+            👤 Oluşturan: {{ user.get_full_name|default:user.username }}
+        </p>
+    </div>
+</body>
+</html> 

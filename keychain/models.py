@@ -1,5 +1,6 @@
 from django.db import models
 from django.db import models
+from datetime import date
 from utils.models import StarterModel
 from users.models import User
 
@@ -72,3 +73,43 @@ class SystemShare(models.Model):
 
     def __str__(self):
         return f"{self.system.name} shared by {self.shared_by.username}"
+
+
+class Activity(StarterModel):
+    BILLABLE_CHOICES = [
+        ('yes', 'Evet'),
+        ('no', 'Hayır'),
+    ]
+    
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='activities')
+    activity_description = models.TextField('Faaliyet Açıklaması')
+    duration = models.DecimalField('Süre (saat)', max_digits=5, decimal_places=2)
+    activity_date = models.DateField('Faaliyet Tarihi', help_text='Faaliyetin gerçekleştiği tarih', default=date.today)
+    is_billable = models.CharField('Faturlanabilirlik', max_length=3, choices=BILLABLE_CHOICES, default='yes')
+    primary_person = models.ForeignKey(
+        User, 
+        on_delete=models.PROTECT, 
+        related_name='primary_activities',
+        verbose_name='Kişi'
+    )
+    secondary_person = models.ForeignKey(
+        User, 
+        on_delete=models.PROTECT, 
+        related_name='secondary_activities',
+        verbose_name='İkincil Kişi',
+        blank=True,
+        null=True
+    )
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="owned_activities",
+    )
+
+    class Meta:
+        verbose_name = 'Faaliyet'
+        verbose_name_plural = 'Faaliyetler'
+        ordering = ['-activity_date', '-created_date']
+
+    def __str__(self):
+        return f"{self.project.code} - {self.activity_description[:50]}"
