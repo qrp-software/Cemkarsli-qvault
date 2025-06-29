@@ -130,6 +130,7 @@
                 </a>
               </th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0">Açıklama</th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Durum</th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Eylemler</th>
             </tr>
           </thead>
@@ -148,9 +149,30 @@
               </td>
               <td class="px-4 py-4 text-muted">{{ project.description|truncatewords:10 }}</td>
               <td class="px-4 py-4 text-center">
+                {% if project.is_private %}
+                  <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">
+                    <i class="fas fa-lock me-1"></i>Bana Özel
+                  </span>
+                {% else %}
+                  <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                    <i class="fas fa-globe me-1"></i>Herkese Açık
+                  </span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-4 text-center">
                 {% if project.owner == user %}
                 <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
+                  <button type="button" class="btn btn-sm btn-outline-secondary rounded-start-3 px-3" 
+                          data-project-id="{{ project.id }}"
+                          data-action="toggle-privacy"
+                          title="{% if project.is_private %}Herkese Açık Yap{% else %}Bana Özel Yap{% endif %}">
+                    {% if project.is_private %}
+                      <i class="fas fa-unlock"></i>
+                    {% else %}
+                      <i class="fas fa-lock"></i>
+                    {% endif %}
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-primary px-3" 
                           data-bs-toggle="modal" 
                           data-bs-target="#projeDuzenleModal"
                           data-id="{{ project.id }}"
@@ -306,6 +328,97 @@ document.addEventListener('DOMContentLoaded', function() {
     const newUrl = window.location.pathname;
     window.history.replaceState({}, document.title, newUrl);
   }
+  
+  // Proje gizlilik toggle butonları için event listener ekle
+  const toggleButtons = document.querySelectorAll('button[data-action="toggle-privacy"]');
+  toggleButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const projectId = this.getAttribute('data-project-id');
+      toggleProjectPrivacy(projectId);
+    });
+  });
 });
+
+// Proje Gizlilik Toggle Fonksiyonu
+function toggleProjectPrivacy(projectId) {
+  fetch(`/keychain/toggle_project_privacy/${projectId}/`, {
+    method: 'PUT',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Başarılı mesaj göster
+      showToast('Başarılı', data.message, 'success');
+      
+      // Sayfayı yenile
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      showToast('Hata', data.error || 'Bir hata oluştu.', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Hata', 'Bir hata oluştu.', 'error');
+  });
+}
+
+// Toast mesajı göster
+function showToast(title, message, type) {
+  const toast = document.createElement('div');
+  toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
+  toast.setAttribute('aria-atomic', 'true');
+  
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        <strong>${title}:</strong> ${message}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  `;
+  
+  // Toast container'ı oluştur veya mevcut olanı kullan
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+    document.body.appendChild(toastContainer);
+  }
+  
+  toastContainer.appendChild(toast);
+  
+  const bsToast = new bootstrap.Toast(toast);
+  bsToast.show();
+  
+  // Toast kapandığında DOM'dan kaldır
+  toast.addEventListener('hidden.bs.toast', () => {
+    toast.remove();
+  });
+}
+
+// CSRF Token al
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 </script>
 {% endblock %}

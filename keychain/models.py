@@ -10,6 +10,7 @@ class Project(StarterModel):
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True)
     system_type = models.CharField(max_length=50, blank=True, null=True)
+    is_private = models.BooleanField(default=False)  # False = Herkese açık, True = Bana özel
     owner = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -48,6 +49,7 @@ class Company(models.Model):
     number = models.CharField(max_length=20)
     system_type = models.CharField(max_length=50)
     additional_info = models.JSONField(default=dict, blank=True)
+    is_private = models.BooleanField(default=False)  # False = Herkese açık, True = Bana özel
     owner = models.ForeignKey(
         User,
         on_delete=models.PROTECT,

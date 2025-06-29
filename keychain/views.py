@@ -60,21 +60,10 @@ class HomeView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         print(f"Home view accessed. User authenticated: {request.user.is_authenticated}")  # Debug
         
-        # Kullanıcının kendi projeleri
-        own_projects = request.user.projects.all()
-        
-        # Paylaşılan sistemlerin projeleri
-        shared_system_projects = Project.objects.filter(
-            companies__shares__shared_with=request.user
-        ).exclude(owner=request.user)
-        
-        # Herkese açık sistemlerin projeleri
-        public_system_projects = Project.objects.filter(
-            companies__shares__is_public=True
-        ).exclude(owner=request.user).exclude(id__in=shared_system_projects)
-        
-        # Tüm projeleri birleştir
-        all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
+        # Herkese açık projeler + kendi özel projeleri
+        all_projects = Project.objects.filter(
+            models.Q(is_private=False) | models.Q(owner=request.user)
+        )
         
         user_projects_count = all_projects.count()
         recent_projects = all_projects.order_by('-created_date')[:5]
@@ -101,23 +90,10 @@ class ProjectListView(LoginRequiredMixin, ListView):
     context_object_name = "projects"
 
     def get_queryset(self):
-        user = self.request.user
-        
-        # Kullanıcının kendi projeleri
-        own_projects = user.projects.all()
-        
-        # Paylaşılan sistemlerin projeleri
-        shared_system_projects = Project.objects.filter(
-            companies__shares__shared_with=user
-        ).exclude(owner=user)
-        
-        # Herkese açık sistemlerin projeleri
-        public_system_projects = Project.objects.filter(
-            companies__shares__is_public=True
-        ).exclude(owner=user).exclude(id__in=shared_system_projects)
-        
-        # Tüm projeleri birleştir
-        all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
+        # Herkese açık projeler + kendi özel projeleri
+        all_projects = Project.objects.filter(
+            models.Q(is_private=False) | models.Q(owner=self.request.user)
+        )
         
         # Sıralama parametresini al
         sort_by = self.request.GET.get('sort', 'id')
@@ -155,9 +131,10 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "project"
 
     def get_queryset(self):
-        user = self.request.user
-        queryset = user.projects.all()
-        return queryset
+        # Herkese açık projeler + kendi özel projeleri
+        return Project.objects.filter(
+            models.Q(is_private=False) | models.Q(owner=self.request.user)
+        )
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
@@ -177,41 +154,19 @@ class SistemListView(LoginRequiredMixin, ListView):
     context_object_name = "systems"
 
     def get_queryset(self):
-        user = self.request.user
-        # Kullanıcının kendi sistemleri
-        own_systems = user.companies.all()
-        # Kullanıcıyla paylaşılan sistemler
-        shared_systems = Company.objects.filter(
-            shares__shared_with=user
-        ).exclude(owner=user)
-        # Herkese açık sistemler
-        public_systems = Company.objects.filter(
-            shares__is_public=True
-        ).exclude(owner=user).exclude(id__in=shared_systems)
-        
-        return (own_systems | shared_systems | public_systems).distinct()
+        # Herkese açık sistemler + kendi özel sistemleri
+        return Company.objects.filter(
+            models.Q(is_private=False) | models.Q(owner=self.request.user)
+        )
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = CompanyForm()
         
-        # Kullanıcının kendi projeleri
-        own_projects = self.request.user.projects.all()
-        
-        # Paylaşılan sistemlerin projeleri
-        shared_system_projects = Project.objects.filter(
-            companies__shares__shared_with=self.request.user
-        ).exclude(owner=self.request.user)
-        
-        # Herkese açık sistemlerin projeleri
-        public_system_projects = Project.objects.filter(
-            companies__shares__is_public=True
-        ).exclude(owner=self.request.user).exclude(id__in=shared_system_projects)
-        
-        # Tüm projeleri birleştir
-        all_projects = (own_projects | shared_system_projects | public_system_projects).distinct()
-        
-        context["projects"] = all_projects
+        # Herkese açık projeler + kendi özel projeleri
+        context["projects"] = Project.objects.filter(
+            models.Q(is_private=False) | models.Q(owner=self.request.user)
+        )
         return context
 
 
@@ -235,7 +190,9 @@ class ProjectCreateAPIView(LoginRequiredMixin, View):
                 'code': project.code,
                 'name': project.name,
                 'description': project.description,
-                'system_type': get_system_type_label(project.system_type)
+                'system_type': get_system_type_label(project.system_type),
+                'is_private': project.is_private,
+                'status': "Bana Özel" if project.is_private else "Herkese Açık"
             })
         except json.JSONDecodeError:
             return create_error_response('Invalid JSON data')
@@ -260,7 +217,9 @@ class ProjectUpdateAPIView(LoginRequiredMixin, View):
                 'code': project.code,
                 'name': project.name,
                 'description': project.description,
-                'system_type': get_system_type_label(project.system_type)
+                'system_type': get_system_type_label(project.system_type),
+                'is_private': project.is_private,
+                'status': "Bana Özel" if project.is_private else "Herkese Açık"
             })
         except Project.DoesNotExist:
             return create_error_response('Project not found')
@@ -282,6 +241,27 @@ class ProjectDeleteAPIView(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'error': str(e)})
 
 
+class ProjectTogglePrivacyAPIView(LoginRequiredMixin, View):
+    def put(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id, owner=request.user)
+            # is_private değerini tersine çevir
+            project.is_private = not project.is_private
+            project.save()
+            
+            status = "Bana Özel" if project.is_private else "Herkese Açık"
+            return create_success_response({
+                'id': project.id,
+                'is_private': project.is_private,
+                'status': status,
+                'message': f'Proje durumu "{status}" olarak güncellendi.'
+            })
+        except Project.DoesNotExist:
+            return create_error_response('Project not found')
+        except Exception as e:
+            return create_error_response(str(e))
+
+
 class CompanyCreateAPIView(LoginRequiredMixin, View):
     def post(self, request):
         try:
@@ -291,7 +271,10 @@ class CompanyCreateAPIView(LoginRequiredMixin, View):
             project = None
             if project_id:
                 try:
-                    project = request.user.projects.get(id=project_id)
+                    # Herkese açık projeler + kendi özel projeleri
+                    project = Project.objects.filter(
+                        models.Q(is_private=False) | models.Q(owner=request.user)
+                    ).get(id=project_id)
                 except Project.DoesNotExist:
                     return create_error_response('Project not found')
             
@@ -311,7 +294,9 @@ class CompanyCreateAPIView(LoginRequiredMixin, View):
                 'project_name': project.name if project else '',
                 'name': company.name,
                 'number': company.number,
-                'system_type': get_system_type_label(company.system_type)
+                'system_type': get_system_type_label(company.system_type),
+                'is_private': company.is_private,
+                'status': "Bana Özel" if company.is_private else "Herkese Açık"
             })
         except json.JSONDecodeError:
             return create_error_response('Invalid JSON data')
@@ -322,13 +307,16 @@ class CompanyCreateAPIView(LoginRequiredMixin, View):
 class CompanyUpdateAPIView(LoginRequiredMixin, View):
     def put(self, request, company_id):
         try:
-            company = request.user.companies.get(id=company_id)
+            company = Company.objects.get(id=company_id)
             data = json.loads(request.body)
             
             project_id = data.get('project_id')
             if project_id:
                 try:
-                    project = request.user.projects.get(id=project_id)
+                    # Herkese açık projeler + kendi özel projeleri
+                    project = Project.objects.filter(
+                        models.Q(is_private=False) | models.Q(owner=request.user)
+                    ).get(id=project_id)
                     company.project = project
                 except Project.DoesNotExist:
                     return create_error_response('Project not found')
@@ -346,7 +334,9 @@ class CompanyUpdateAPIView(LoginRequiredMixin, View):
                 'project_name': company.project.name if company.project else '',
                 'name': company.name,
                 'number': company.number,
-                'system_type': get_system_type_label(company.system_type)
+                'system_type': get_system_type_label(company.system_type),
+                'is_private': company.is_private,
+                'status': "Bana Özel" if company.is_private else "Herkese Açık"
             })
         except Company.DoesNotExist:
             return create_error_response('Company not found')
@@ -359,7 +349,7 @@ class CompanyUpdateAPIView(LoginRequiredMixin, View):
 class CompanyDeleteAPIView(LoginRequiredMixin, View):
     def delete(self, request, company_id):
         try:
-            company = request.user.companies.get(id=company_id)
+            company = Company.objects.get(id=company_id)
             
             # Önce sistemin paylaşımlarını sil
             SystemShare.objects.filter(system=company).delete()
@@ -373,18 +363,34 @@ class CompanyDeleteAPIView(LoginRequiredMixin, View):
             return create_error_response(str(e))
 
 
+class CompanyTogglePrivacyAPIView(LoginRequiredMixin, View):
+    def put(self, request, company_id):
+        try:
+            company = Company.objects.get(id=company_id, owner=request.user)
+            # is_private değerini tersine çevir
+            company.is_private = not company.is_private
+            company.save()
+            
+            status = "Bana Özel" if company.is_private else "Herkese Açık"
+            return create_success_response({
+                'id': company.id,
+                'is_private': company.is_private,
+                'status': status,
+                'message': f'Sistem durumu "{status}" olarak güncellendi.'
+            })
+        except Company.DoesNotExist:
+            return create_error_response('System not found')
+        except Exception as e:
+            return create_error_response(str(e))
+
+
 class CompanyDetailAPIView(LoginRequiredMixin, View):
     def get(self, request, company_id):
         try:
-            # Önce kullanıcının kendi sistemlerinde ara
-            try:
-                company = request.user.companies.get(id=company_id)
-            except Company.DoesNotExist:
-                # Kendi sistemlerinde yoksa, paylaşılan sistemlerde ara
-                company = Company.objects.filter(
-                    models.Q(shares__shared_with=request.user) |  # Kullanıcıyla paylaşılan
-                    models.Q(shares__is_public=True)  # Herkese açık
-                ).get(id=company_id)
+            # Herkese açık sistemler + kendi özel sistemleri
+            company = Company.objects.filter(
+                models.Q(is_private=False) | models.Q(owner=request.user)
+            ).get(id=company_id)
 
             # Sistem tipine göre ek bilgileri hazırla
             additional_info = company.additional_info or {}
