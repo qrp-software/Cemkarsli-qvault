@@ -130,24 +130,34 @@
               {% endif %}
             </div>
             <div class="d-flex align-items-center gap-2">
-              {% if system.shares.exists %}
-                {% for share in system.shares.all %}
-                  {% if share.is_public %}
-                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill" title="Herkese Açık">
-                      <i class="fas fa-globe me-1"></i>Herkese Açık
-                    </span>
-                  {% else %}
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill" title="Paylaşılmış">
-                      <i class="fas fa-share-alt me-1"></i>Paylaşılmış
-                    </span>
-                  {% endif %}
-                {% endfor %}
+              {% if system.is_private %}
+                <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill" title="Bana Özel">
+                  <i class="fas fa-lock me-1"></i>Bana Özel
+                </span>
+              {% else %}
+                <span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill" title="Herkese Açık">
+                  <i class="fas fa-globe me-1"></i>Herkese Açık
+                </span>
               {% endif %}
               <div class="dropdown" onclick="event.stopPropagation();">
                 <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
                   <i class="fas fa-ellipsis-v"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
+                  {% if system.owner == user %}
+                  <li>
+                    <a class="dropdown-item" href="#" 
+                       data-system-id="{{ system.id }}"
+                       data-action="toggle-system-privacy">
+                      {% if system.is_private %}
+                        <i class="fas fa-unlock me-2"></i>Herkese Açık Yap
+                      {% else %}
+                        <i class="fas fa-lock me-2"></i>Bana Özel Yap
+                      {% endif %}
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  {% endif %}
                   <li>
                     <a class="dropdown-item" href="#" 
                        data-bs-toggle="modal" 
@@ -160,6 +170,7 @@
                       <i class="fas fa-edit me-2"></i>Düzenle
                     </a>
                   </li>
+                  {% if system.owner == user %}
                   <li>
                     <a class="dropdown-item text-danger" href="#"
                        data-bs-toggle="modal"
@@ -169,6 +180,13 @@
                       <i class="fas fa-trash me-2"></i>Sil
                     </a>
                   </li>
+                  {% else %}
+                  <li>
+                    <span class="dropdown-item-text text-muted">
+                      <i class="fas fa-eye me-2"></i>Sadece Görüntüleme
+                    </span>
+                  </li>
+                  {% endif %}
                 </ul>
               </div>
             </div>
@@ -841,6 +859,19 @@
 {% block extra_js %}
 <script src="{% static 'keychain/js/sistem_list.js' %}"></script>
 <script>
+// Sayfa yüklendiğinde event listener'ları ekle
+document.addEventListener('DOMContentLoaded', function() {
+  // Sistem gizlilik toggle butonları için event listener ekle
+  const toggleSystemButtons = document.querySelectorAll('a[data-action="toggle-system-privacy"]');
+  toggleSystemButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const systemId = this.getAttribute('data-system-id');
+      toggleSystemPrivacy(systemId);
+    });
+  });
+});
+
 // Proje filtreleme fonksiyonu - currentProjectFilter zaten sistem_list.js'de tanımlı
 
 function filterByProject(projectName) {
@@ -933,6 +964,88 @@ function filterSystems() {
   });
   
   console.log('=== filterSystems tamamlandı ===');
+}
+
+// Sistem Gizlilik Toggle Fonksiyonu
+function toggleSystemPrivacy(systemId) {
+  fetch(`/keychain/toggle_company_privacy/${systemId}/`, {
+    method: 'PUT',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Toast mesajı göster
+      showToast('Başarılı', data.message, 'success');
+      
+      // Sayfayı yenile
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      showToast('Hata', data.error || 'Bir hata oluştu.', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Hata', 'Bir hata oluştu.', 'error');
+  });
+}
+
+// Toast mesajı göster
+function showToast(title, message, type) {
+  const toast = document.createElement('div');
+  toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
+  toast.setAttribute('aria-atomic', 'true');
+  
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        <strong>${title}:</strong> ${message}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  `;
+  
+  // Toast container'ı oluştur veya mevcut olanı kullan
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+    document.body.appendChild(toastContainer);
+  }
+  
+  toastContainer.appendChild(toast);
+  
+  const bsToast = new bootstrap.Toast(toast);
+  bsToast.show();
+  
+  // Toast kapandığında DOM'dan kaldır
+  toast.addEventListener('hidden.bs.toast', () => {
+    toast.remove();
+  });
+}
+
+// CSRF Token al
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
 }
 </script>
 {% endblock %}
