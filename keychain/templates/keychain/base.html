@@ -97,17 +97,19 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow">
               <li>
-                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="#">
-                  <i class="fas fa-cog text-primary"></i>
-                  <span>Ayarlar</span>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="{% url 'users:profile' %}">
+                  <i class="fas fa-user text-primary"></i>
+                  <span>Profil</span>
                 </a>
               </li>
+              {% if user.is_superuser %}
               <li>
-                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="#">
-                  <i class="fas fa-question-circle text-primary"></i>
-                  <span>Yardım</span>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded" href="{% url 'users:admin_settings' %}">
+                  <i class="fas fa-cog text-primary"></i>
+                  <span>Yönetici Ayarları</span>
                 </a>
               </li>
+              {% endif %}
               <li><hr class="dropdown-divider my-2"></li>
               <li>
                 <a class="dropdown-item d-flex align-items-center gap-3 py-2 px-3 rounded text-danger" href="{% url 'keychain:logout' %}">
@@ -155,8 +157,10 @@
           <strong>{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-          <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Ayarlar</a></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Yardım</a></li>
+          <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user me-2"></i>Profil</a></li>
+          {% if user.is_superuser %}
+          <li><a class="dropdown-item" href="{% url 'users:admin_settings' %}"><i class="fas fa-cog me-2"></i>Yönetici Ayarları</a></li>
+          {% endif %}
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{% url 'keychain:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
         </ul>

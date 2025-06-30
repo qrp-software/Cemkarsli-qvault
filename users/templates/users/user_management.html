@@ -1,0 +1,177 @@
+{% extends "keychain/base.html" %}
+{% load static %}
+
+{% block title %}Kullanıcı Yönetimi - Keychain{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        Kullanıcı Yönetimi
+                    </h1>
+                    <p class="text-muted mb-0">Kullanıcıları görüntüleyin ve yönetin</p>
+                </div>
+                <div>
+                    <a href="{% url 'users:create_user' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Yeni Kullanıcı
+                    </a>
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="card-title mb-0 text-primary fw-bold">
+                                <i class="fas fa-list me-2"></i>
+                                Kullanıcı Listesi
+                            </h6>
+                        </div>
+                        <div class="col-auto">
+                            <form method="get" class="d-flex">
+                                <input type="text" 
+                                       class="form-control form-control-sm me-2" 
+                                       name="search" 
+                                       value="{{ search_query }}" 
+                                       placeholder="Kullanıcı ara..."
+                                       style="width: 200px;">
+                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                {% if search_query %}
+                                    <a href="{% url 'users:user_management' %}" class="btn btn-outline-secondary btn-sm ms-1">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4 py-3 border-0">Kullanıcı</th>
+                                        <th class="py-3 border-0">E-posta</th>
+                                        <th class="py-3 border-0">Kayıt Tarihi</th>
+                                        <th class="py-3 border-0">Durum</th>
+                                        <th class="py-3 border-0">Yetki</th>
+                                        <th class="py-3 border-0 text-center">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                        <tr>
+                                            <td class="ps-4 py-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar avatar-sm me-3">
+                                                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-user text-primary"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">
+                                                            {% if user.first_name %}
+                                                                {{ user.first_name }} {{ user.last_name }}
+                                                            {% else %}
+                                                                {{ user.username }}
+                                                            {% endif %}
+                                                        </h6>
+                                                        <small class="text-muted">@{{ user.username }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3">{{ user.email }}</td>
+                                            <td class="py-3">{{ user.date_joined|date:"d.m.Y" }}</td>
+                                            <td class="py-3">
+                                                {% if user.is_active %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Aktif
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Pasif
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-3">
+                                                {% if user.is_superuser %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-crown me-1"></i>
+                                                        Süper Kullanıcı
+                                                    </span>
+                                                {% elif user.is_staff %}
+                                                    <span class="badge bg-info">
+                                                        <i class="fas fa-user-tie me-1"></i>
+                                                        Staff
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        Kullanıcı
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-3 text-center">
+                                                {% if user != request.user %}
+                                                    <a href="{% url 'users:edit_user_permissions' user.id %}" 
+                                                       class="btn btn-outline-primary btn-sm me-1"
+                                                       title="Yetkileri Düzenle">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted small">
+                                                        <i class="fas fa-lock me-1"></i>
+                                                        Kendiniz
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">
+                                {% if search_query %}
+                                    Arama kriterinize uygun kullanıcı bulunamadı
+                                {% else %}
+                                    Henüz kullanıcı bulunmuyor
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted">
+                                {% if search_query %}
+                                    Farklı bir arama terimi deneyin
+                                {% else %}
+                                    Yeni kullanıcı eklemek için yukarıdaki butonu kullanın
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

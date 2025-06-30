@@ -1,0 +1,137 @@
+{% extends "keychain/base.html" %}
+{% load static %}
+
+{% block title %}Profil - Keychain{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                        Profil Bilgileri
+                    </h1>
+                    <p class="text-muted mb-0">Kişisel bilgilerinizi düzenleyebilirsiniz.</p>
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="card-title mb-0 text-primary fw-bold">
+                                <i class="fas fa-edit me-2"></i>
+                                Profil Düzenle
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.first_name.id_for_label }}" class="form-label fw-medium">
+                                            {{ form.first_name.label }}
+                                        </label>
+                                        {{ form.first_name }}
+                                        {% if form.first_name.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ form.first_name.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.last_name.id_for_label }}" class="form-label fw-medium">
+                                            {{ form.last_name.label }}
+                                        </label>
+                                        {{ form.last_name }}
+                                        {% if form.last_name.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ form.last_name.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label fw-medium">
+                                        {{ form.email.label }}
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.email.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save me-2"></i>
+                                        Kaydet
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="card-title mb-0 text-primary fw-bold">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Hesap Bilgileri
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-muted">Kullanıcı Adı</label>
+                                <p class="mb-0">{{ user.username }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-muted">Kayıt Tarihi</label>
+                                <p class="mb-0">{{ user.date_joined|date:"d F Y" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-muted">Son Giriş</label>
+                                <p class="mb-0">
+                                    {% if user.last_login %}
+                                        {{ user.last_login|date:"d F Y H:i" }}
+                                    {% else %}
+                                        Hiç giriş yapılmamış
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label fw-medium text-muted">Durum</label>
+                                <p class="mb-0">
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>
+                                            Aktif
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>
+                                            Pasif
+                                        </span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

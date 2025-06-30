@@ -1,0 +1,141 @@
+{% extends "keychain/base.html" %}
+{% load static %}
+
+{% block title %}Yönetici Ayarları - Keychain{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-cogs me-2 text-primary"></i>
+                        Yönetici Ayarları
+                    </h1>
+                    <p class="text-muted mb-0">Sistem yönetimi ve kullanıcı ayarları</p>
+                </div>
+            </div>
+
+            <!-- İstatistik Kartları -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Toplam Kullanıcı
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ users_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yönetim Kartları -->
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="card-title mb-0 text-primary fw-bold">
+                                <i class="fas fa-users me-2"></i>
+                                Kullanıcı Yönetimi
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="text-muted mb-4">
+                                Kullanıcıları görüntüleyin, düzenleyin ve yeni kullanıcılar ekleyin.
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'users:user_management' %}" class="btn btn-primary">
+                                    <i class="fas fa-list me-2"></i>
+                                    Kullanıcıları Yönet
+                                </a>
+                                <a href="{% url 'users:create_user' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Yeni Kullanıcı Ekle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="card-title mb-0 text-primary fw-bold">
+                                <i class="fas fa-clock me-2"></i>
+                                Son Eklenen Kullanıcılar
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if recent_users %}
+                                <div class="list-group list-group-flush">
+                                    {% for user in recent_users %}
+                                        <div class="list-group-item px-0 py-2 border-0">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user text-primary"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">
+                                                        {% if user.first_name %}
+                                                            {{ user.first_name }} {{ user.last_name }}
+                                                        {% else %}
+                                                            {{ user.username }}
+                                                        {% endif %}
+                                                    </h6>
+                                                    <small class="text-muted">{{ user.date_joined|date:"d F Y" }}</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    {% if user.is_active %}
+                                                        <span class="badge bg-success-soft text-success">Aktif</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger-soft text-danger">Pasif</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-0">Henüz kullanıcı bulunmuyor.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.bg-success-soft {
+    background-color: rgba(28, 200, 138, 0.1) !important;
+}
+
+.bg-danger-soft {
+    background-color: rgba(231, 74, 59, 0.1) !important;
+}
+
+.text-success {
+    color: #1cc88a !important;
+}
+
+.text-danger {
+    color: #e74a3b !important;
+}
+</style>
+{% endblock %} 
