@@ -59,21 +59,22 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         print(f"Home view accessed. User authenticated: {request.user.is_authenticated}")  # Debug
-        
-        # Herkese açık projeler + kendi özel projeleri
-        all_projects = Project.objects.filter(
-            models.Q(is_private=False) | models.Q(owner=request.user)
-        )
-        
+
+        user = request.user
+        if user.is_superuser:
+            all_projects = Project.objects.all()
+        else:
+            all_projects = Project.objects.filter(
+                models.Q(is_private=False) | models.Q(owner=request.user)
+            )
+            
         user_projects_count = all_projects.count()
         recent_projects = all_projects.order_by('-created_date')[:5]
         
         context = {
-            'user': request.user,
             'projects_count': user_projects_count,
             'recent_projects': recent_projects,
         }
-        print(f"Rendering home.html for user: {request.user.username}")  # Debug
         return self.render_to_response(context)
 
 
@@ -91,9 +92,13 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Herkese açık projeler + kendi özel projeleri
-        all_projects = Project.objects.filter(
-            models.Q(is_private=False) | models.Q(owner=self.request.user)
-        )
+        user = self.request.user
+        if user.is_superuser:
+            all_projects = Project.objects.all()
+        else:
+            all_projects = Project.objects.filter(
+                models.Q(is_private=False) | models.Q(owner=user)
+            )
         
         # Sıralama parametresini al
         sort_by = self.request.GET.get('sort', 'id')
@@ -132,9 +137,13 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         # Herkese açık projeler + kendi özel projeleri
-        return Project.objects.filter(
-            models.Q(is_private=False) | models.Q(owner=self.request.user)
-        )
+        user = self.request.user
+        if user.is_superuser:
+            return Project.objects.all()
+        else:
+            return Project.objects.filter(
+                models.Q(is_private=False) | models.Q(owner=user)
+            )
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
@@ -155,18 +164,25 @@ class SistemListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Herkese açık sistemler + kendi özel sistemleri
-        return Company.objects.filter(
-            models.Q(is_private=False) | models.Q(owner=self.request.user)
-        )
+        user = self.request.user
+        if user.is_superuser:
+            return Company.objects.all()
+        else:
+            return Company.objects.filter(
+                models.Q(is_private=False) | models.Q(owner=user)
+            )
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = CompanyForm()
         
-        # Herkese açık projeler + kendi özel projeleri
-        context["projects"] = Project.objects.filter(
-            models.Q(is_private=False) | models.Q(owner=self.request.user)
-        )
+        user = self.request.user
+        if user.is_superuser:
+            context["projects"] = Project.objects.all()
+        else:
+            context["projects"] = Project.objects.filter(
+                models.Q(is_private=False) | models.Q(owner=user)
+            )
         return context
 
 
@@ -231,8 +247,11 @@ class ProjectUpdateAPIView(LoginRequiredMixin, View):
 
 class ProjectDeleteAPIView(LoginRequiredMixin, View):
     def delete(self, request, project_id):
+        queryset = Project.objects.all()
+        if not request.user.is_superuser:
+            queryset = queryset.filter(owner=request.user)
         try:
-            project = Project.objects.get(id=project_id, owner=request.user)
+            project = queryset.get(id=project_id)
             project.delete()
             return JsonResponse({'success': True})
         except Project.DoesNotExist:

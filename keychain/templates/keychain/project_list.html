@@ -160,7 +160,7 @@
                 {% endif %}
               </td>
               <td class="px-4 py-4 text-center">
-                {% if project.owner == user %}
+                {% if project.owner == user or user.is_superuser %}
                 <div class="btn-group" role="group">
                   <button type="button" class="btn btn-sm btn-outline-secondary rounded-start-3 px-3" 
                           data-project-id="{{ project.id }}"
