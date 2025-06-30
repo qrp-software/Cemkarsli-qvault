@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="pdfencoding" content="utf-8">
+    <title>Faaliyet Raporu</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: "Times New Roman", serif;
+            color: #333;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .logo img {
+            width: 100px;
+            height: auto;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #003366;
+            letter-spacing: 2px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #003366;
+        }
+
+        .header p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .summary div {
+            flex: 1;
+            text-align: center;
+        }
+
+        .summary div span {
+            display: block;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .summary div strong {
+            font-size: 16px;
+            color: #003366;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px 6px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #003366;
+            color: white;
+            font-size: 11px;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .billable-yes {
+            text-align: center;
+            color: green;
+        }
+
+        .billable-no {
+            text-align: center;
+            color: red;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+
+        /* PDF uyumluluğu için */
+        @media print {
+            .summary {
+                display: table;
+                width: 100%;
+            }
+            
+            .summary div {
+                display: table-cell;
+                width: 25%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">
+            {% if logo_base64 %}
+                <img src="{{ logo_base64 }}" alt="QVault Logo">
+            {% else %}
+                <div class="logo-text">QRP</div>
+            {% endif %}
+        </div>
+        <h1>Faaliyet Raporu</h1>
+        <p>{{ first_date|date:"d/m/Y" }} &ndash; {{ last_date|date:"d/m/Y" }} | Hazırlayan: {{ user.user.first_name }} {{ user.user.last_name }}</p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Tarih</th>
+                <th>Proje</th>
+                <th>A&ccedil;&inodot;klama</th>
+                <th>S&uuml;re</th>
+                <th>Fatura</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %}
+            <tr>
+                <td>{{ activity.activity_date|date:"d/m/Y" }}</td>   
+                <td>{{ activity.project.code }} - {{ activity.project.name }}</td>
+                <td>{{ activity.activity_name }}</td>
+                <td>{{ activity.duration_hours|floatformat:1 }}</td>
+                <td class="{% if activity.is_billable %}billable-yes{% else %}billable-no{% endif %}">
+                    {% if activity.is_billable %}✓{% else %}—{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Bu rapor QRP Proje Y&ouml;netim Sistemi taraf&inodot;ndan olu&scedil;turulmu&scedil;tur; {{ generated_date|date:"d/m/Y H:i" }}
+    </div>
+
+</body>
+</html> 
