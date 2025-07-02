@@ -850,10 +850,11 @@ class ActivityExportExcelView(LoginRequiredMixin, View):
 class ActivityExportPDFView(LoginRequiredMixin, View):
     def post(self, request):
         try:
-            from xhtml2pdf import pisa
+            import pdfkit
             from django.http import HttpResponse
             from django.template.loader import render_to_string
-            import io
+            from django.conf import settings
+            import os
             
             activity_ids = request.POST.getlist('activity_ids')
             if not activity_ids:
@@ -876,6 +877,8 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
             # Toplam süre hesaplaması
             total_hours = sum(activity.duration_hours for activity in activities_list)
             billable_hours = sum(activity.duration_hours for activity in activities_list if activity.is_billable)
+            non_billable_hours = total_hours - billable_hours
+            billing_ratio = (billable_hours / total_hours * 100) if total_hours > 0 else 0
             
             # Tarih aralığı
             first_date = activities_list[0].activity_date
@@ -885,16 +888,12 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
             logo_base64 = None
             try:
                 import base64
-                import os
-                from django.conf import settings
-                
-                logo_path = os.path.join(settings.BASE_DIR, 'keychain', 'static', 'keychain', 'images', 'qvaultlogo.png')
+                logo_path = os.path.join(settings.BASE_DIR, 'keychain', 'static', 'keychain', 'images', 'logo.png')
                 if os.path.exists(logo_path):
                     with open(logo_path, 'rb') as logo_file:
                         logo_data = base64.b64encode(logo_file.read()).decode('utf-8')
                         logo_base64 = f"data:image/png;base64,{logo_data}"
             except Exception as e:
-                # Logo yüklenemezse metin logo kullanılacak
                 pass
             
             # Template context'i hazırla
@@ -903,6 +902,8 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
                 'total_activities': len(activities_list),
                 'total_hours': total_hours,
                 'billable_hours': billable_hours,
+                'non_billable_hours': non_billable_hours,
+                'billing_ratio': billing_ratio,
                 'first_date': first_date,
                 'last_date': last_date,
                 'generated_date': datetime.now(),
@@ -910,46 +911,63 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
                 'logo_base64': logo_base64,
             }
             
-            try:
-                # HTML template'ini render et
-                html_content = render_to_string('keychain/pdf_template.html', context)
-                # HTML entity escape
-                import html
-                html_content = html_content.replace('ı', '&inodot;').replace('ş', '&scedil;').replace('ğ', '&gbreve;').replace('ü', '&uuml;').replace('ö', '&ouml;').replace('ç', '&ccedil;')
-                html_content = html_content.replace('İ', '&Idot;').replace('Ş', '&Scedil;').replace('Ğ', '&Gbreve;').replace('Ü', '&Uuml;').replace('Ö', '&Ouml;').replace('Ç', '&Ccedil;')
-            except Exception as template_error:
-                return JsonResponse({'success': False, 'error': f'Template hatası: {str(template_error)}'})
+            # HTML template'ini render et
+            html_content = render_to_string('keychain/pdf_template.html', context)
             
-            # PDF oluştur - Türkçe karakter desteği için encoding
-            result = io.BytesIO()
+            # wkhtmltopdf ayarları
+            options = {
+                'page-size': 'A4',
+                'margin-top': '2cm',
+                'margin-right': '2cm',
+                'margin-bottom': '2cm',
+                'margin-left': '2cm',
+                'encoding': "UTF-8",
+                'custom-header': [
+                    ('Accept-Encoding', 'gzip')
+                ],
+                'no-outline': None,
+                'enable-local-file-access': None
+            }
             
-            try:
-                pdf = pisa.pisaDocument(
-                    io.BytesIO(html_content.encode("UTF-8")), 
-                    result,
-                    encoding='UTF-8'
-                )
-            except Exception as pdf_error:
-                return JsonResponse({'success': False, 'error': f'PDF oluşturma hatası: {str(pdf_error)}'})
+            # wkhtmltopdf path'ini bul
+            wkhtmltopdf_path = None
+            possible_paths = [
+                r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe',
+                r'C:\Program Files (x86)\wkhtmltopdf\bin\wkhtmltopdf.exe',
+                'wkhtmltopdf'  # PATH'de varsa
+            ]
             
-            if not pdf.err:
-                # PDF response oluştur
-                response = HttpResponse(result.getvalue(), content_type='application/pdf')
-                response['Content-Disposition'] = f'attachment; filename="faaliyet_raporu_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf"'
-                return response
-            else:
-                # PDF hata detayları
-                error_details = []
-                for (level, msg, obj) in pdf.log:
-                    error_details.append(f"{level}: {msg}")
+            for path in possible_paths:
+                if os.path.exists(path) or path == 'wkhtmltopdf':
+                    wkhtmltopdf_path = path
+                    break
+            
+            if not wkhtmltopdf_path:
                 return JsonResponse({
                     'success': False, 
-                    'error': 'PDF oluşturulurken hata oluştu',
-                    'details': error_details[:5]  # İlk 5 hatayı göster
+                    'error': 'wkhtmltopdf bulunamadı. Lütfen https://wkhtmltopdf.org/downloads.html adresinden indirip kurun.'
+                })
+            
+            # PDF konfigürasyonu
+            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+            
+            try:
+                # HTML'i PDF'e çevir
+                pdf_content = pdfkit.from_string(html_content, False, options=options, configuration=config)
+                
+                # Response oluştur
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="faaliyet_raporu_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf"'
+                return response
+                
+            except Exception as pdf_error:
+                return JsonResponse({
+                    'success': False, 
+                    'error': f'PDF oluşturma hatası: {str(pdf_error)}'
                 })
             
         except ImportError:
-            return JsonResponse({'success': False, 'error': 'xhtml2pdf kütüphanesi yüklü değil'})
+            return JsonResponse({'success': False, 'error': 'pdfkit kütüphanesi yüklü değil'})
         except Exception as e:
             import traceback
             return JsonResponse({
@@ -962,54 +980,68 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
 class ActivityExportPDFTestView(LoginRequiredMixin, View):
     def post(self, request):
         try:
-            from xhtml2pdf import pisa
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.colors import HexColor
+            from reportlab.lib.units import cm
+            from reportlab.lib.enums import TA_CENTER
             from django.http import HttpResponse
-            from django.template.loader import render_to_string
             import io
+            import os
+            from django.conf import settings
             
-            # Logo'yu base64 olarak hazırla
-            logo_base64 = None
-            try:
-                import base64
-                import os
-                from django.conf import settings
-                
-                logo_path = os.path.join(settings.BASE_DIR, 'keychain', 'static', 'keychain', 'images', 'qvaultlogo.png')
-                if os.path.exists(logo_path):
-                    with open(logo_path, 'rb') as logo_file:
-                        logo_data = base64.b64encode(logo_file.read()).decode('utf-8')
-                        logo_base64 = f"data:image/png;base64,{logo_data}"
-            except Exception as e:
-                pass
+            # PDF buffer oluştur
+            pdf_buffer = io.BytesIO()
             
-            # Template ile HTML oluştur
-            context = {
-                'logo_base64': logo_base64,
-                'user': request.user,
-                'generated_date': datetime.now(),
-                'activities': [],
-                'total_activities': 0,
-                'total_hours': 0,
-                'billable_hours': 0,
-                'first_date': datetime.now().date(),
-                'last_date': datetime.now().date(),
-            }
+            # PDF dokument oluştur
+            doc = SimpleDocTemplate(
+                pdf_buffer,
+                pagesize=A4,
+                rightMargin=2*cm,
+                leftMargin=2*cm,
+                topMargin=2*cm,
+                bottomMargin=2*cm
+            )
             
-            html_content = render_to_string('keychain/pdf_template.html', context)
-            # HTML entity escape
-            html_content = html_content.replace('ı', '&inodot;').replace('ş', '&scedil;').replace('ğ', '&gbreve;').replace('ü', '&uuml;').replace('ö', '&ouml;').replace('ç', '&ccedil;')
-            html_content = html_content.replace('İ', '&Idot;').replace('Ş', '&Scedil;').replace('Ğ', '&Gbreve;').replace('Ü', '&Uuml;').replace('Ö', '&Ouml;').replace('Ç', '&Ccedil;')
+            # Stiller
+            styles = getSampleStyleSheet()
+            
+            title_style = ParagraphStyle(
+                'TitleStyle',
+                parent=styles['Heading1'],
+                fontSize=18,
+                textColor=HexColor('#f2b100'),
+                alignment=TA_CENTER,
+                spaceAfter=20,
+                fontName='Helvetica-Bold'
+            )
+            
+            # PDF içeriği
+            story = []
+            
+            # Logo ekle (varsa)
+            logo_path = os.path.join(settings.BASE_DIR, 'keychain', 'static', 'keychain', 'images', 'qvaultlogo.png')
+            if os.path.exists(logo_path):
+                try:
+                    logo = Image(logo_path, width=100, height=50)
+                    logo.hAlign = 'CENTER'
+                    story.append(logo)
+                    story.append(Spacer(1, 10))
+                except:
+                    pass
+            
+            # Test başlığı
+            story.append(Paragraph("TEST PDF - ReportLab ile Oluşturuldu", title_style))
+            story.append(Paragraph(f"Oluşturulma Zamanı: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
             
             # PDF oluştur
-            result = io.BytesIO()
-            pdf = pisa.pisaDocument(io.BytesIO(html_content.encode("UTF-8")), result)
+            doc.build(story)
             
-            if not pdf.err:
-                response = HttpResponse(result.getvalue(), content_type='application/pdf')
-                response['Content-Disposition'] = 'attachment; filename="test.pdf"'
-                return response
-            else:
-                return JsonResponse({'success': False, 'error': 'Test PDF oluşturulamadı'})
+            # Response oluştur
+            response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="test.pdf"'
+            return response
                 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
