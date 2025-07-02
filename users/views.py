@@ -30,18 +30,45 @@ class ProfileView(LoginRequiredMixin, View):
     """Kullanıcı profil sayfası - herkes erişebilir"""
     template_name = "users/profile.html"
     form_class = forms.EditUserForm
+    password_form_class = forms.CustomPasswordChangeForm
 
     def get(self, request):
         form = self.form_class(instance=request.user)
-        return render(request, self.template_name, {"form": form})
+        password_form = self.password_form_class(user=request.user)
+        return render(request, self.template_name, {
+            "form": form,
+            "password_form": password_form
+        })
 
     def post(self, request):
-        form = self.form_class(instance=request.user, data=request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            messages.success(request, _("Profil bilgileriniz başarıyla güncellendi."))
-            return redirect(reverse("users:profile"))
-        return render(request, self.template_name, {"form": form})
+        if 'change_password' in request.POST:
+            # Şifre değiştirme formu
+            password_form = self.password_form_class(user=request.user, data=request.POST)
+            form = self.form_class(instance=request.user)
+            
+            if password_form.is_valid():
+                password_form.save()
+                messages.success(request, _("Şifreniz başarıyla güncellendi."))
+                return redirect(reverse("users:profile"))
+            
+            return render(request, self.template_name, {
+                "form": form,
+                "password_form": password_form
+            })
+        else:
+            # Profil bilgileri formu
+            form = self.form_class(instance=request.user, data=request.POST)
+            password_form = self.password_form_class(user=request.user)
+            
+            if form.is_valid():
+                form.save(commit=True)
+                messages.success(request, _("Profil bilgileriniz başarıyla güncellendi."))
+                return redirect(reverse("users:profile"))
+            
+            return render(request, self.template_name, {
+                "form": form,
+                "password_form": password_form
+            })
 
 
 class EditUserInfoView(LoginRequiredMixin, View):
@@ -86,7 +113,8 @@ class UserManagementView(LoginRequiredMixin, SuperUserRequiredMixin, View):
 
     def get(self, request):
         search_query = request.GET.get('search', '')
-        users = User.objects.all()
+        # Kendimizi listeden hariç tutalım
+        users = User.objects.exclude(id=request.user.id)
         
         if search_query:
             users = users.filter(
@@ -131,23 +159,23 @@ class EditUserPermissionsView(LoginRequiredMixin, SuperUserRequiredMixin, View):
     form_class = forms.EditUserPermissionsForm
 
     def get(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
-        if user == request.user:
+        target_user = get_object_or_404(User, id=user_id)
+        if target_user == request.user:
             messages.warning(request, _("Kendi yetkilendirinizi düzenleyemezsiniz."))
             return redirect(reverse("users:user_management"))
         
-        form = self.form_class(instance=user)
-        return render(request, self.template_name, {"form": form, "user": user})
+        form = self.form_class(instance=target_user)
+        return render(request, self.template_name, {"form": form, "target_user": target_user})
 
     def post(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
-        if user == request.user:
+        target_user = get_object_or_404(User, id=user_id)
+        if target_user == request.user:
             messages.warning(request, _("Kendi yetkilendirinizi düzenleyemezsiniz."))
             return redirect(reverse("users:user_management"))
         
-        form = self.form_class(instance=user, data=request.POST)
+        form = self.form_class(instance=target_user, data=request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, _(f"'{user.username}' kullanıcısının yetkileri güncellendi."))
+            messages.success(request, _(f"'{target_user.username}' kullanıcısının yetkileri güncellendi."))
             return redirect(reverse("users:user_management"))
-        return render(request, self.template_name, {"form": form, "user": user})
+        return render(request, self.template_name, {"form": form, "target_user": target_user})

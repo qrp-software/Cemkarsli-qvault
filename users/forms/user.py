@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from users.models import User
 
 User = get_user_model()
@@ -123,8 +123,8 @@ class EditUserPermissionsForm(forms.ModelForm):
         }
         labels = {
             'is_active': _('Aktif'),
-            'is_staff': _('Staff Yetkisi'),
-            'is_superuser': _('Süper Kullanıcı'),
+            'is_staff': _('Moderatör Yetkisi'),
+            'is_superuser': _('Yönetici'),
             'can_share_systems': _('Sistem Paylaşım Yetkisi'),
         }
         help_texts = {
@@ -133,3 +133,34 @@ class EditUserPermissionsForm(forms.ModelForm):
             'is_superuser': _('Tüm yönetici yetkilerini verir'),
             'can_share_systems': _('Sistem paylaşımı yapabilmesine izin verir'),
         }
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Mevcut şifre field'ı
+        self.fields['old_password'].widget = forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Mevcut şifrenizi girin',
+            'autocomplete': 'current-password'
+        })
+        
+        # Yeni şifre field'ı
+        self.fields['new_password1'].widget = forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Yeni şifrenizi girin',
+            'autocomplete': 'new-password'
+        })
+        
+        # Yeni şifre tekrar field'ı
+        self.fields['new_password2'].widget = forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Yeni şifrenizi tekrar girin',
+            'autocomplete': 'new-password'
+        })
+        
+        # Field labels
+        self.fields['old_password'].label = _('Mevcut Şifre')
+        self.fields['new_password1'].label = _('Yeni Şifre')
+        self.fields['new_password2'].label = _('Yeni Şifre (Tekrar)')
