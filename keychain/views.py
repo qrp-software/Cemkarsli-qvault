@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from .models import Project, Company, SystemShare, Activity
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from .forms import ProjectForm, CompanyForm
 import json
 from users.models import User
@@ -600,7 +600,20 @@ class ActivityListView(LoginRequiredMixin, ListView):
 class ActivityCreateAPIView(LoginRequiredMixin, View):
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            # Form data mı JSON data mı kontrol et
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body)
+            else:
+                # Form data (dosya upload için)
+                data = {
+                    'project_id': request.POST.get('project_id'),
+                    'activity_name': request.POST.get('activity_name'),
+                    'duration': request.POST.get('duration'),
+                    'is_billable': request.POST.get('is_billable') == 'true',
+                    'primary_person_id': request.POST.get('primary_person_id'),
+                    'secondary_person_id': request.POST.get('secondary_person_id'),
+                    'activity_date': request.POST.get('activity_date')
+                }
             
             # Proje kontrolü
             project_id = data.get('project_id')
@@ -658,6 +671,11 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
                 owner=request.user
             )
             
+            # Dosya varsa kaydet
+            if 'attachment' in request.FILES:
+                activity.attachment = request.FILES['attachment']
+                activity.save()
+            
             return create_success_response({
                 'id': activity.id,
                 'project_code': activity.project.code,
@@ -678,10 +696,28 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
 
 
 class ActivityUpdateAPIView(LoginRequiredMixin, View):
+    def post(self, request, activity_id):
+        # POST methodunu PUT olarak işle
+        return self.put(request, activity_id)
+    
     def put(self, request, activity_id):
         try:
             activity = Activity.objects.get(id=activity_id, owner=request.user)
-            data = json.loads(request.body)
+            
+            # Form data mı JSON data mı kontrol et
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body)
+            else:
+                # Form data (dosya upload için)
+                data = {
+                    'project_id': request.POST.get('project_id'),
+                    'activity_name': request.POST.get('activity_name'),
+                    'duration': request.POST.get('duration'),
+                    'is_billable': request.POST.get('is_billable') == 'true',
+                    'primary_person_id': request.POST.get('primary_person_id'),
+                    'secondary_person_id': request.POST.get('secondary_person_id'),
+                    'activity_date': request.POST.get('activity_date')
+                }
             
             # Proje kontrolü
             project_id = data.get('project_id')
@@ -736,6 +772,26 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
             # Diğer alanları güncelle
             activity.activity_name = data.get('activity_name', activity.activity_name)
             activity.is_billable = data.get('is_billable', activity.is_billable)
+            
+            # Dosya güncelleme
+            if 'attachment' in request.FILES:
+                # Eski dosyayı sil (varsa)
+                if activity.attachment:
+                    try:
+                        activity.attachment.delete()
+                    except:
+                        pass
+                # Yeni dosyayı kaydet
+                activity.attachment = request.FILES['attachment']
+            elif request.POST.get('remove_attachment') == 'true':
+                # Dosyayı kaldır
+                if activity.attachment:
+                    try:
+                        activity.attachment.delete()
+                    except:
+                        pass
+                    activity.attachment = None
+            
             activity.save()
             
             return create_success_response({
@@ -1043,5 +1099,47 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
             response['Content-Disposition'] = 'attachment; filename="test.pdf"'
             return response
                 
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+
+class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
+    """Faaliyet dosyalarını indirme görünümü"""
+    def get(self, request, activity_id):
+        try:
+            # Kullanıcının erişebildiği faaliyetleri kontrol et
+            activity = Activity.objects.filter(
+                models.Q(owner=request.user) | 
+                models.Q(primary_person=request.user) | 
+                models.Q(secondary_person=request.user)
+            ).get(id=activity_id)
+            
+            if not activity.attachment:
+                return JsonResponse({'success': False, 'error': 'Bu faaliyete ait dosya bulunamadı'})
+            
+            from django.http import FileResponse
+            import os
+            
+            # Dosya yolunu al
+            file_path = activity.attachment.path
+            
+            # Dosya var mı kontrol et
+            if not os.path.exists(file_path):
+                return JsonResponse({'success': False, 'error': 'Dosya sistemde bulunamadı'})
+            
+            # Dosya adını al (sadece dosya adı, yol olmadan)
+            filename = os.path.basename(activity.attachment.name)
+            
+            # Dosyayı indir
+            response = FileResponse(
+                open(file_path, 'rb'),
+                as_attachment=True,
+                filename=filename
+            )
+            
+            return response
+            
+        except Activity.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Faaliyet bulunamadı veya erişim yetkiniz yok'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})

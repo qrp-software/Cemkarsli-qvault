@@ -117,6 +117,13 @@ class Activity(StarterModel):
         blank=True, 
         verbose_name="Açıklama"
     )
+    attachment = models.FileField(
+        upload_to='activity_files/%Y/%m/',
+        blank=True,
+        null=True,
+        verbose_name="Dosya",
+        help_text="Faaliyetle ilgili dosya, resim veya PDF yükleyebilirsiniz"
+    )
     owner = models.ForeignKey(
         User,
         on_delete=models.PROTECT,

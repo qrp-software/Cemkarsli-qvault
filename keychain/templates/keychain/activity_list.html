@@ -307,6 +307,9 @@
                   </label>
                 </div>
               </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">
+                <i class="fas fa-paperclip me-1"></i>Dosya
+              </th>
               <th class="px-4 py-3 text-secondary fw-semibold border-0">
                 <a href="?sort=activity_date&order={% if current_sort == 'activity_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
                    class="text-decoration-none text-secondary d-flex align-items-center">
@@ -424,6 +427,26 @@
                   <input class="form-check-input activity-checkbox" type="checkbox" value="{{ activity.id }}" onchange="updateExportButtons()">
                 </div>
               </td>
+              <td class="px-4 py-4 text-center">
+                {% if activity.attachment %}
+                  <a href="{% url 'keychain:download_attachment' activity.id %}" 
+                     class="btn btn-sm btn-outline-info rounded-pill px-3" 
+                     title="{{ activity.attachment.name|default:'Dosya İndir' }}"
+                     data-bs-toggle="tooltip">
+                    {% if activity.attachment.name|slice:"-4:" == ".pdf" %}
+                      <i class="fas fa-file-pdf me-1"></i>PDF
+                    {% elif activity.attachment.name|slice:"-4:" in ".jpg,.png,.gif" or activity.attachment.name|slice:"-5:" == ".jpeg" %}
+                      <i class="fas fa-file-image me-1"></i>Resim
+                    {% elif activity.attachment.name|slice:"-4:" in ".doc,.xls" or activity.attachment.name|slice:"-5:" in ".docx,.xlsx" %}
+                      <i class="fas fa-file-word me-1"></i>Döküman
+                    {% else %}
+                      <i class="fas fa-file me-1"></i>Dosya
+                    {% endif %}
+                  </a>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
               <td class="px-4 py-4 fw-medium">{{ activity.activity_date|date:"d/m/Y" }}</td>
               <td class="px-4 py-4 fw-medium">{{ activity.project.code }}</td>
               <td class="px-4 py-4 fw-medium">{{ activity.project.name }}</td>
@@ -457,7 +480,8 @@
                           data-is-billable="{{ activity.is_billable }}"
                           data-primary-person-id="{{ activity.primary_person.id }}"
                           data-secondary-person-id="{% if activity.secondary_person %}{{ activity.secondary_person.id }}{% endif %}"
-                          data-activity-date="{{ activity.activity_date|date:'Y-m-d' }}">
+                          data-activity-date="{{ activity.activity_date|date:'Y-m-d' }}"
+                          data-attachment="{% if activity.attachment %}{{ activity.attachment.name }}{% endif %}">
                     <i class="fas fa-edit"></i>
                   </button>
                   <button type="button" class="btn btn-sm btn-outline-danger rounded-end-3 px-3"
@@ -477,7 +501,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="10" class="text-center py-5 text-muted">
+              <td colspan="11" class="text-center py-5 text-muted">
                 <i class="fas fa-tasks fa-3x mb-3 opacity-50"></i>
                 <p class="mb-0">Henüz faaliyet bulunmamaktadır.</p>
               </td>
@@ -583,6 +607,11 @@
                 <option value="{{ user.id }}">{{ user.username }}</option>
                 {% endfor %}
               </select>
+            </div>
+            <div class="col-12">
+              <label for="activityFile" class="form-label fw-medium">Dosya</label>
+              <input type="file" class="form-control" id="activityFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+              <div class="form-text">PDF, Word, Excel, resim dosyaları yükleyebilirsiniz. (Maksimum 10MB)</div>
             </div>
           </div>
         </form>
@@ -691,6 +720,22 @@
                 <option value="{{ user.id }}">{{ user.username }}</option>
                 {% endfor %}
               </select>
+            </div>
+            <div class="col-12">
+              <label for="duzenle_activityFile" class="form-label fw-medium">Dosya</label>
+              <input type="file" class="form-control" id="duzenle_activityFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+              <div class="form-text">PDF, Word, Excel, resim dosyaları yükleyebilirsiniz. (Maksimum 10MB)</div>
+              <div id="duzenle_currentFile" class="mt-2" style="display: none;">
+                <div class="alert alert-info d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="fas fa-file me-2"></i>
+                    <span id="duzenle_currentFileName">Mevcut dosya</span>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCurrentFile()">
+                    <i class="fas fa-trash me-1"></i>Kaldır
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </form>
