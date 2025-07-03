@@ -427,7 +427,7 @@
               <td class="px-4 py-4 fw-medium">{{ activity.activity_date|date:"d/m/Y" }}</td>
               <td class="px-4 py-4 fw-medium">{{ activity.project.code }}</td>
               <td class="px-4 py-4 fw-medium">{{ activity.project.name }}</td>
-              <td class="px-4 py-4 fw-medium">{{ activity.activity_name }}</td>
+              <td class="px-4 py-4 fw-medium">{{ activity.activity_name|safe }}</td>
               <td class="px-4 py-4 fw-medium">{{ activity.duration_hours|floatformat:1 }} saat</td>
               <td class="px-4 py-4 text-left">
                 {% if activity.is_billable %}
@@ -452,7 +452,7 @@
                           data-bs-target="#faaliyetDuzenleModal"
                           data-id="{{ activity.id }}"
                           data-project-id="{{ activity.project.id }}"
-                          data-activity-name="{{ activity.activity_name }}"
+                          data-activity-name="{{ activity.activity_name|safe }}"
                           data-duration="{{ activity.duration }}"
                           data-is-billable="{{ activity.is_billable }}"
                           data-primary-person-id="{{ activity.primary_person.id }}"
@@ -464,7 +464,7 @@
                           data-bs-toggle="modal"
                           data-bs-target="#faaliyetSilModal"
                           data-id="{{ activity.id }}"
-                          data-name="{{ activity.activity_name }}">
+                          data-name="{{ activity.activity_name|safe }}">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
@@ -517,8 +517,43 @@
               </select>
             </div>
             <div class="col-12">
-              <label for="activityName" class="form-label fw-medium">Açıklama <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="activityName" placeholder="Faaliyet açıklamasını giriniz" required>
+              <label for="activityName" class="form-label fw-medium">Faaliyet <span class="text-danger">*</span></label>
+              <!-- Text Formatlamaya İlişkin Butonlar -->
+              <div class="btn-toolbar mb-2" role="toolbar" aria-label="Text formatting toolbar">
+                <div class="btn-group me-2" role="group" aria-label="Text formatting">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('activityName', 'bold')" title="Kalın">
+                    <i class="fas fa-bold"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('activityName', 'italic')" title="İtalik">
+                    <i class="fas fa-italic"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('activityName', 'underline')" title="Altı çizili">
+                    <i class="fas fa-underline"></i>
+                  </button>
+                </div>
+                <div class="btn-group me-2" role="group" aria-label="Lists">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('activityName', 'ul')" title="Liste">
+                    <i class="fas fa-list-ul"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('activityName', 'ol')" title="Numaralı Liste">
+                    <i class="fas fa-list-ol"></i>
+                  </button>
+                </div>
+                <div class="btn-group" role="group" aria-label="Clear formatting">
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFormatting('activityName')" title="Formatlamayı Temizle">
+                    <i class="fas fa-remove-format"></i>
+                  </button>
+                </div>
+              </div>
+              <div 
+                class="form-control" 
+                id="activityName" 
+                contenteditable="true" 
+                style="min-height: 120px; padding: 12px; border: 1px solid #ced4da; border-radius: 0.375rem; background-color: #fff;" 
+                data-placeholder="Faaliyet açıklamasını giriniz..." 
+                required>
+              </div>
+              <input type="hidden" id="activityNameHidden" name="activity_name">
             </div>
             <div class="col-12">
               <label for="isBillable" class="form-label fw-medium">Faturalanabilir <span class="text-danger">*</span></label>
@@ -590,8 +625,43 @@
               </select>
             </div>
             <div class="col-12">
-              <label for="duzenle_activityName" class="form-label fw-medium">Açıklama <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="duzenle_activityName" placeholder="Faaliyet açıklamasını giriniz" required>
+              <label for="duzenle_activityName" class="form-label fw-medium">Faaliyet <span class="text-danger">*</span></label>
+              <!-- Text Formatlamaya İlişkin Butonlar -->
+              <div class="btn-toolbar mb-2" role="toolbar" aria-label="Text formatting toolbar">
+                <div class="btn-group me-2" role="group" aria-label="Text formatting">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('duzenle_activityName', 'bold')" title="Kalın">
+                    <i class="fas fa-bold"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('duzenle_activityName', 'italic')" title="İtalik">
+                    <i class="fas fa-italic"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('duzenle_activityName', 'underline')" title="Altı çizili">
+                    <i class="fas fa-underline"></i>
+                  </button>
+                </div>
+                <div class="btn-group me-2" role="group" aria-label="Lists">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('duzenle_activityName', 'ul')" title="Liste">
+                    <i class="fas fa-list-ul"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('duzenle_activityName', 'ol')" title="Numaralı Liste">
+                    <i class="fas fa-list-ol"></i>
+                  </button>
+                </div>
+                <div class="btn-group" role="group" aria-label="Clear formatting">
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFormatting('duzenle_activityName')" title="Formatlamayı Temizle">
+                    <i class="fas fa-remove-format"></i>
+                  </button>
+                </div>
+              </div>
+              <div 
+                class="form-control" 
+                id="duzenle_activityName" 
+                contenteditable="true" 
+                style="min-height: 120px; padding: 12px; border: 1px solid #ced4da; border-radius: 0.375rem; background-color: #fff;" 
+                data-placeholder="Faaliyet açıklamasını giriniz..." 
+                required>
+              </div>
+              <input type="hidden" id="duzenle_activityNameHidden" name="activity_name">
             </div>
             <div class="col-12">
               <label for="duzenle_isBillable" class="form-label fw-medium">Faturalanabilir <span class="text-danger">*</span></label>
