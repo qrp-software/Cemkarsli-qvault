@@ -475,7 +475,7 @@
                           data-bs-target="#faaliyetDuzenleModal"
                           data-id="{{ activity.id }}"
                           data-project-id="{{ activity.project.id }}"
-                          data-activity-name="{{ activity.activity_name|safe }}"
+                          data-activity-name="{{ activity.activity_name|striptags|escape }}"
                           data-duration="{{ activity.duration }}"
                           data-is-billable="{{ activity.is_billable }}"
                           data-primary-person-id="{{ activity.primary_person.id }}"
@@ -488,7 +488,8 @@
                           data-bs-toggle="modal"
                           data-bs-target="#faaliyetSilModal"
                           data-id="{{ activity.id }}"
-                          data-name="{{ activity.activity_name|safe }}">
+                          data-name="{{ activity.activity_name|striptags|escape }}"
+                          onclick="updateFaaliyetSilModal(this)">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
