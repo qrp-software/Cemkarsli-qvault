@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faaliyet Raporu</title>
+    <style>
+        /* Eski CSS kodlarıyla uyumlu stiller */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            background-color: #fff;
+        }
+        
+        .header {
+            width: 100%;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f2b100;
+            padding-bottom: 10px;
+        }
+        
+        .logo {
+            float: left;
+            width: 150px;
+            height: 80px;
+            margin-right: 0;
+        }
+        
+        .header-info {
+            float: left;
+            width: calc(100% - 170px);
+            margin-left: 0;
+        }
+        
+        .header-info {
+            float: left;
+            width: calc(100% - 170px);
+            margin-left: 0;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f2b100;
+            margin-bottom: 5px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .header-date {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f2b100;
+            margin-bottom: 5px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+
+        
+        .clear {
+            clear: both;
+        }
+        
+        .summary-section {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+        }
+        
+        .summary-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f2b100;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f2b100;
+            padding-bottom: 5px;
+        }
+        
+        .summary-grid {
+            width: 100%;
+        }
+        
+        .summary-row {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .summary-label {
+            float: left;
+            width: 150px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .summary-value {
+            float: left;
+            width: calc(100% - 150px);
+            color: #333;
+        }
+        
+        .table-section {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .table-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f2b100;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f2b100;
+            padding-bottom: 5px;
+        }
+        
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-bottom: 20px;
+        }
+        
+        .activity-table th {
+            background-color: #f2b100;
+            color: white;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #d4a017;
+            font-size: 11px;
+        }
+        
+        .activity-table td {
+            padding: 6px 8px;
+            border: 1px solid #dee2e6;
+            font-size: 10px;
+            vertical-align: top;
+        }
+        
+        .activity-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .activity-table tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .date-column {
+            width: 80px;
+        }
+        
+        .activity-column {
+            width: 400px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            line-height: 1.4;
+        }
+        
+        .activity-column strong {
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .activity-column em {
+            font-style: italic;
+            color: #374151;
+        }
+        
+        .activity-column u {
+            text-decoration: underline;
+            text-decoration-color: #6366f1;
+            text-decoration-thickness: 1px;
+        }
+        
+        .activity-column ul {
+            margin: 3px 0;
+            padding-left: 15px;
+            list-style-type: disc;
+        }
+        
+        .activity-column ol {
+            margin: 3px 0;
+            padding-left: 15px;
+            list-style-type: decimal;
+        }
+        
+        .activity-column li {
+            margin: 1px 0;
+            line-height: 1.3;
+        }
+        
+        .duration-column {
+            width: 60px;
+            text-align: center;
+        }
+        
+        .billable-column {
+            width: 80px;
+            text-align: center;
+        }
+        
+        .billable-yes {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .billable-no {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .footer {
+            width: 100%;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        @media print {
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        {% if logo_base64 %}
+        <img src="{{ logo_base64 }}" alt="Logo" class="logo">
+        {% endif %}
+        <div class="header-info">
+            <div class="header-title">Faaliyet Raporu</div>
+            <div class="header-date">Oluşturulma Tarihi: {{ generated_date|date:"d/m/Y H:i" }}</div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    
+    <!-- Özet Bilgiler -->
+    <div class="summary-section">
+        <div class="summary-title">Rapor Özeti</div>
+        <div class="summary-grid">
+            <div class="summary-row">
+                <div class="summary-label">Toplam Faaliyet:</div>
+                <div class="summary-value">{{ total_activities }} adet</div>
+                <div class="clear"></div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Toplam Süre:</div>
+                <div class="summary-value">{{ total_hours|floatformat:1 }} saat</div>
+                <div class="clear"></div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Faturalanabilir Süre:</div>
+                <div class="summary-value">{{ billable_hours|floatformat:1 }} saat</div>
+                <div class="clear"></div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Faturalanamayan Süre:</div>
+                <div class="summary-value">{{ non_billable_hours|floatformat:1 }} saat</div>
+                <div class="clear"></div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">Faturalanabilirlik Oranı:</div>
+                <div class="summary-value">{{ billing_ratio|floatformat:1 }}%</div>
+                <div class="clear"></div>
+            </div>
+        
+        </div>
+    </div>
+    
+    <!-- Faaliyet Tablosu -->
+    <div class="table-section">
+        <div class="table-title">Faaliyet Detayları</div>
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th class="date-column">Tarih</th>
+                    <th class="activity-column">Faaliyet</th>
+                    <th class="duration-column">Süre (Saat)</th>
+                    <th class="billable-column">Faturalanabilir</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                <tr>
+                    <td class="date-column">{{ activity.activity_date|date:"d/m/Y" }}</td>
+                    <td class="activity-column">{{ activity.activity_name|safe }}</td>
+                    <td class="duration-column">{{ activity.duration_hours|floatformat:1 }}</td>
+                    <td class="billable-column">
+                        {% if activity.is_billable %}
+                            <span class="billable-yes">Evet</span>
+                        {% else %}
+                            <span class="billable-no">Hayır</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <p>Bu rapor, QRP Yazılım Teknolojileri Ltd. Şti. tarafından oluşturulmuştur. Bütün hakları saklıdır.</p>
+    </div>
+</body>
+</html>

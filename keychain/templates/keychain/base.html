@@ -190,6 +190,12 @@
             </ul>
           </div>
         </li>
+        <li>
+          <a href="{% url 'keychain:activity_list' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}">
+            <i class="fas fa-tasks me-2"></i>
+            Faaliyetler
+          </a>
+        </li>
       </ul>
       <hr>
       <div class="dropdown">
