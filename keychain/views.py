@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import Project, Company, SystemShare, Activity
+from .models import Project, Company, SystemShare, Activity, ActivityAttachment
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponseRedirect, JsonResponse, FileResponse
@@ -15,6 +15,9 @@ from users.models import User
 from django.db import models
 from datetime import datetime, timedelta
 from django.template.loader import render_to_string
+import os
+from django.utils.html import strip_tags
+import re
 
 # Constants
 SYSTEM_TYPE_CHOICES = {
@@ -93,7 +96,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
     context_object_name = "projects"
 
     def get_queryset(self):
-        # Herkese açık projeler + kendi özel projeleri
+    
         user = self.request.user
         if user.is_superuser:
             all_projects = Project.objects.all()
@@ -101,12 +104,12 @@ class ProjectListView(LoginRequiredMixin, ListView):
             all_projects = Project.objects.filter(
                 models.Q(is_private=False) | models.Q(owner=user)
             )
+
         
-        # Sıralama parametresini al
         sort_by = self.request.GET.get('sort', 'id')
         order = self.request.GET.get('order', 'asc')
         
-        # Sıralama alanını belirle
+        
         if sort_by == 'code':
             sort_field = 'code'
         elif sort_by == 'name':
@@ -118,7 +121,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
         else:
             sort_field = 'id'
         
-        # Sıralama yönünü belirle
+        
         if order == 'desc':
             sort_field = '-' + sort_field
         
@@ -138,7 +141,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "project"
 
     def get_queryset(self):
-        # Herkese açık projeler + kendi özel projeleri
+        
         user = self.request.user
         if user.is_superuser:
             return Project.objects.all()
@@ -165,7 +168,7 @@ class SistemListView(LoginRequiredMixin, ListView):
     context_object_name = "systems"
 
     def get_queryset(self):
-        # Herkese açık sistemler + kendi özel sistemleri
+        
         user = self.request.user
         if user.is_superuser:
             return Company.objects.all()
@@ -266,7 +269,7 @@ class ProjectTogglePrivacyAPIView(LoginRequiredMixin, View):
     def put(self, request, project_id):
         try:
             project = Project.objects.get(id=project_id, owner=request.user)
-            # is_private değerini tersine çevir
+            
             project.is_private = not project.is_private
             project.save()
             
@@ -292,7 +295,7 @@ class CompanyCreateAPIView(LoginRequiredMixin, View):
             project = None
             if project_id:
                 try:
-                    # Herkese açık projeler + kendi özel projeleri
+                    
                     project = Project.objects.filter(
                         models.Q(is_private=False) | models.Q(owner=request.user)
                     ).get(id=project_id)
@@ -334,7 +337,7 @@ class CompanyUpdateAPIView(LoginRequiredMixin, View):
             project_id = data.get('project_id')
             if project_id:
                 try:
-                    # Herkese açık projeler + kendi özel projeleri
+                    
                     project = Project.objects.filter(
                         models.Q(is_private=False) | models.Q(owner=request.user)
                     ).get(id=project_id)
@@ -372,10 +375,10 @@ class CompanyDeleteAPIView(LoginRequiredMixin, View):
         try:
             company = Company.objects.get(id=company_id)
             
-            # Önce sistemin paylaşımlarını sil
+            
             SystemShare.objects.filter(system=company).delete()
             
-            # Sonra sistemi sil
+            
             company.delete()
             return create_success_response({'message': 'Company deleted successfully'})
         except Company.DoesNotExist:
@@ -388,7 +391,7 @@ class CompanyTogglePrivacyAPIView(LoginRequiredMixin, View):
     def put(self, request, company_id):
         try:
             company = Company.objects.get(id=company_id, owner=request.user)
-            # is_private değerini tersine çevir
+            
             company.is_private = not company.is_private
             company.save()
             
@@ -408,12 +411,12 @@ class CompanyTogglePrivacyAPIView(LoginRequiredMixin, View):
 class CompanyDetailAPIView(LoginRequiredMixin, View):
     def get(self, request, company_id):
         try:
-            # Herkese açık sistemler + kendi özel sistemleri
+
             company = Company.objects.filter(
                 models.Q(is_private=False) | models.Q(owner=request.user)
             ).get(id=company_id)
 
-            # Sistem tipine göre ek bilgileri hazırla
+            
             additional_info = company.additional_info or {}
             system_type = get_system_type_label(company.system_type)
             
@@ -690,10 +693,16 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
                 owner=request.user
             )
             
-            # Dosya varsa kaydet
-            if 'attachment' in request.FILES:
-                activity.attachment = request.FILES['attachment']
-                activity.save()
+            # Birden fazla dosyayı kaydet
+            if 'attachments' in request.FILES:
+                for uploaded_file in request.FILES.getlist('attachments'):
+                    ActivityAttachment.objects.create(
+                        activity=activity,
+                        file=uploaded_file,
+                        original_name=uploaded_file.name,
+                        file_size=uploaded_file.size,
+                        uploaded_by=request.user
+                    )
             
             return create_success_response({
                 'id': activity.id,
@@ -792,24 +801,16 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
             activity.activity_name = data.get('activity_name', activity.activity_name)
             activity.is_billable = data.get('is_billable', activity.is_billable)
             
-            # Dosya güncelleme
-            if 'attachment' in request.FILES:
-                # Eski dosyayı sil (varsa)
-                if activity.attachment:
-                    try:
-                        activity.attachment.delete()
-                    except:
-                        pass
-                # Yeni dosyayı kaydet
-                activity.attachment = request.FILES['attachment']
-            elif request.POST.get('remove_attachment') == 'true':
-                # Dosyayı kaldır
-                if activity.attachment:
-                    try:
-                        activity.attachment.delete()
-                    except:
-                        pass
-                    activity.attachment = None
+            # Yeni dosyaları ekle
+            if 'attachments' in request.FILES:
+                for uploaded_file in request.FILES.getlist('attachments'):
+                    ActivityAttachment.objects.create(
+                        activity=activity,
+                        file=uploaded_file,
+                        original_name=uploaded_file.name,
+                        file_size=uploaded_file.size,
+                        uploaded_by=request.user
+                    )
             
             activity.save()
             
@@ -846,12 +847,64 @@ class ActivityDeleteAPIView(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'error': str(e)})
 
 
+def format_html_for_excel(html_content):
+    """HTML içeriği Excel için uygun formata dönüştürür"""
+    if not html_content:
+        return ""
+    
+    # HTML içeriğini temizle ve formatla
+    content = html_content
+    
+    # Ordered list (numaralı liste) işlemleri
+    ol_pattern = r'<ol[^>]*>(.*?)</ol>'
+    ol_matches = re.findall(ol_pattern, content, re.DOTALL | re.IGNORECASE)
+    for match in ol_matches:
+        # Her li elementini numara ile değiştir
+        li_items = re.findall(r'<li[^>]*>(.*?)</li>', match, re.DOTALL | re.IGNORECASE)
+        formatted_items = []
+        for i, item in enumerate(li_items, 1):
+            clean_item = strip_tags(item).strip()
+            if clean_item:
+                formatted_items.append(f"{i}. {clean_item}")
+        
+        if formatted_items:
+            replacement = '\n'.join(formatted_items)
+            content = content.replace(f'<ol>{match}</ol>', replacement)
+            content = content.replace(f'<ol >{match}</ol>', replacement)
+    
+    # Unordered list (madde işaretli liste) işlemleri  
+    ul_pattern = r'<ul[^>]*>(.*?)</ul>'
+    ul_matches = re.findall(ul_pattern, content, re.DOTALL | re.IGNORECASE)
+    for match in ul_matches:
+        # Her li elementini • ile değiştir
+        li_items = re.findall(r'<li[^>]*>(.*?)</li>', match, re.DOTALL | re.IGNORECASE)
+        formatted_items = []
+        for item in li_items:
+            clean_item = strip_tags(item).strip()
+            if clean_item:
+                formatted_items.append(f"• {clean_item}")
+        
+        if formatted_items:
+            replacement = '\n'.join(formatted_items)
+            content = content.replace(f'<ul>{match}</ul>', replacement)
+            content = content.replace(f'<ul >{match}</ul>', replacement)
+    
+    # Diğer HTML etiketlerini temizle
+    content = strip_tags(content)
+    
+    # Fazla boşlukları temizle
+    content = re.sub(r'\n\s*\n', '\n', content)
+    content = content.strip()
+    
+    return content
+
 class ActivityExportExcelView(LoginRequiredMixin, View):
     def post(self, request):
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Font, PatternFill, Alignment
             from django.http import HttpResponse
+            from django.utils.html import strip_tags
             import io
             
             activity_ids = request.POST.getlist('activity_ids')
@@ -893,15 +946,23 @@ class ActivityExportExcelView(LoginRequiredMixin, View):
                 ws.cell(row=row, column=1, value=activity.activity_date.strftime('%d/%m/%Y'))
                 ws.cell(row=row, column=2, value=activity.project.code)
                 ws.cell(row=row, column=3, value=activity.project.name)
-                ws.cell(row=row, column=4, value=activity.activity_name)
+                # HTML formatlarını Excel için uygun formata dönüştür
+                formatted_activity_name = format_html_for_excel(activity.activity_name) if activity.activity_name else ""
+                activity_cell = ws.cell(row=row, column=4, value=formatted_activity_name)
+                # Çok satırlı metin için wrap text aktif et
+                activity_cell.alignment = Alignment(wrap_text=True, vertical='top')
                 ws.cell(row=row, column=5, value=f"{activity.duration_hours:.1f} saat")
                 ws.cell(row=row, column=6, value="Evet" if activity.is_billable else "Hayır")
                 ws.cell(row=row, column=7, value=activity.primary_person.username)
             
             # Sütun genişliklerini ayarla
-            column_widths = [12, 15, 25, 30, 10, 15, 15]
+            column_widths = [12, 15, 25, 40, 10, 15, 15]  # Faaliyet sütununu genişlettik
             for col, width in enumerate(column_widths, 1):
                 ws.column_dimensions[ws.cell(row=1, column=col).column_letter].width = width
+            
+            # Satır yüksekliklerini ayarla (çok satırlı metin için)
+            for row in range(2, len(activities) + 2):
+                ws.row_dimensions[row].height = 60  # Minimum satır yüksekliği
             
             # Response oluştur
             response = HttpResponse(
@@ -1122,8 +1183,8 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'error': str(e)})
 
 
-class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
-    """Faaliyet dosyalarını indirme görünümü"""
+class ActivityAttachmentsListView(LoginRequiredMixin, View):
+    """Faaliyet dosyalarını listeleme görünümü"""
     def get(self, request, activity_id):
         try:
             # Kullanıcının erişebildiği faaliyetleri kontrol et
@@ -1133,21 +1194,62 @@ class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
                 models.Q(secondary_person=request.user)
             ).get(id=activity_id)
             
-            if not activity.attachment:
-                return JsonResponse({'success': False, 'error': 'Bu faaliyete ait dosya bulunamadı'})
+            attachments = activity.attachments.all()
+            attachments_data = []
             
-            from django.http import FileResponse
-            import os
+            for attachment in attachments:
+                attachments_data.append({
+                    'id': attachment.id,
+                    'original_name': attachment.original_name,
+                    'file_size': attachment.file_size,
+                    'uploaded_at': attachment.uploaded_at.isoformat(),
+                    'is_image': attachment.is_image,
+                    'is_pdf': attachment.is_pdf,
+                    'is_document': attachment.is_document,
+                    'file_extension': attachment.file_extension
+                })
             
-            # Dosya yolunu al
-            file_path = activity.attachment.path
+            return JsonResponse({
+                'success': True,
+                'attachments': attachments_data
+            })
+            
+        except Activity.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Faaliyet bulunamadı veya erişim yetkiniz yok'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+
+class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
+    """Faaliyet dosyalarını indirme görünümü"""
+    def get(self, request, activity_id, attachment_id=None):
+        try:
+            # Kullanıcının erişebildiği faaliyetleri kontrol et
+            activity = Activity.objects.filter(
+                models.Q(owner=request.user) | 
+                models.Q(primary_person=request.user) | 
+                models.Q(secondary_person=request.user)
+            ).get(id=activity_id)
+            
+            if attachment_id:
+                # Spesifik attachment indir
+                try:
+                    attachment = activity.attachments.get(id=attachment_id)
+                    file_path = attachment.file.path
+                    filename = attachment.original_name
+                except ActivityAttachment.DoesNotExist:
+                    return JsonResponse({'success': False, 'error': 'Dosya bulunamadı'})
+            else:
+                # Geriye uyumluluk - ilk dosyayı indir
+                first_attachment = activity.attachments.first()
+                if not first_attachment:
+                    return JsonResponse({'success': False, 'error': 'Bu faaliyete ait dosya bulunamadı'})
+                file_path = first_attachment.file.path
+                filename = first_attachment.original_name
             
             # Dosya var mı kontrol et
             if not os.path.exists(file_path):
                 return JsonResponse({'success': False, 'error': 'Dosya sistemde bulunamadı'})
-            
-            # Dosya adını al (sadece dosya adı, yol olmadan)
-            filename = os.path.basename(activity.attachment.name)
             
             # Dosyayı indir
             response = FileResponse(
@@ -1160,5 +1262,37 @@ class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
             
         except Activity.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Faaliyet bulunamadı veya erişim yetkiniz yok'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+
+class ActivityAttachmentDeleteView(LoginRequiredMixin, View):
+    """Faaliyet dosyalarını silme görünümü"""
+    def delete(self, request, attachment_id):
+        try:
+            # Attachment'ı bul ve kullanıcı yetkisini kontrol et
+            attachment = ActivityAttachment.objects.select_related('activity').get(id=attachment_id)
+            
+            # Kullanıcının bu faaliyete erişimi var mı kontrol et
+            activity = attachment.activity
+            if not (activity.owner == request.user or 
+                   activity.primary_person == request.user or 
+                   activity.secondary_person == request.user):
+                return JsonResponse({'success': False, 'error': 'Bu dosyayı silme yetkiniz yok'})
+            
+            # Fiziksel dosyayı sil
+            try:
+                if attachment.file and os.path.exists(attachment.file.path):
+                    os.remove(attachment.file.path)
+            except Exception as e:
+                print(f"Fiziksel dosya silinirken hata: {e}")
+            
+            # Veritabanı kaydını sil
+            attachment.delete()
+            
+            return JsonResponse({'success': True, 'message': 'Dosya başarıyla silindi'})
+            
+        except ActivityAttachment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Dosya bulunamadı'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
