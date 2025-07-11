@@ -1,4 +1,4 @@
-# Generated manually to fix uploaded_by_id column
+
 from django.db import migrations
 
 
@@ -8,11 +8,11 @@ def add_uploaded_by_column(apps, schema_editor):
     
     cursor = connection.cursor()
     
-    # Mevcut kolonları kontrol et
+    
     cursor.execute("PRAGMA table_info(keychain_activityattachment)")
     existing_columns = [row[1] for row in cursor.fetchall()]
     
-    # uploaded_by_id kolonu yoksa ekle
+  
     if 'uploaded_by_id' not in existing_columns:
         cursor.execute("ALTER TABLE keychain_activityattachment ADD COLUMN uploaded_by_id INTEGER REFERENCES auth_user(id)")
 

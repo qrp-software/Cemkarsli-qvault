@@ -1,4 +1,3 @@
-// Hızlı tarih seçimi fonksiyonları
 function setQuickDate(option) {
     const today = new Date();
     const startDateInput = document.querySelector('input[name="start_date"]');
@@ -39,7 +38,6 @@ function setQuickDate(option) {
             break;
     }
     
-    // Tarih formatını YYYY-MM-DD olarak ayarla
     if (startDate) {
         startDateInput.value = startDate.toISOString().split('T')[0];
     }
@@ -48,7 +46,6 @@ function setQuickDate(option) {
     }
 }
 
-// Cookie alma fonksiyonu
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -64,29 +61,25 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Faaliyet Ekleme
 function faaliyetEkle() {
     const form = document.getElementById("faaliyetEkleForm");
     const formData = new FormData();
     
-    // Form verilerini topla
     const activityDate = document.getElementById("activityDate").value;
     const projectId = document.getElementById("projectSelect").value;
-    const activityName = document.getElementById("activityName").innerHTML; // HTML formatlarını koru
+    const activityName = document.getElementById("activityName").innerHTML;
     const isBillable = document.getElementById("isBillable").value;
     const duration = document.getElementById("duration").value;
     const primaryPersonId = document.getElementById("primaryPerson").value;
     const secondaryPersonId = document.getElementById("secondaryPerson").value;
     const activityFiles = document.getElementById("activityFile").files;
     
-    // Validasyon - sadece içerik kontrolü için stripHtml kullan
     const textContent = activityName.replace(/<[^>]*>/g, '').trim();
     if (!activityDate || !projectId || !textContent || !duration || !primaryPersonId) {
         alert("Lütfen tüm zorunlu alanları doldurun.");
         return;
     }
     
-    // FormData'ya ekle - HTML formatlarını koru
     formData.append('activity_date', activityDate);
     formData.append('project_id', projectId);
     formData.append('activity_name', activityName);
@@ -95,7 +88,6 @@ function faaliyetEkle() {
     formData.append('primary_person_id', primaryPersonId);
     if (secondaryPersonId) formData.append('secondary_person_id', secondaryPersonId);
     
-    // Birden fazla dosyayı ekle
     for (let i = 0; i < activityFiles.length; i++) {
         formData.append('attachments', activityFiles[i]);
     }
@@ -128,30 +120,26 @@ function faaliyetEkle() {
     });
 }
 
-// Faaliyet Güncelleme
 function faaliyetGuncelle() {
     const form = document.getElementById("faaliyetDuzenleForm");
     const activityId = document.getElementById("duzenle_faaliyetId").value;
     const formData = new FormData();
     
-    // Form verilerini topla
     const activityDate = document.getElementById("duzenle_activityDate").value;
     const projectId = document.getElementById("duzenle_projectSelect").value;
-    const activityName = document.getElementById("duzenle_activityName").innerHTML; // HTML formatlarını koru
+    const activityName = document.getElementById("duzenle_activityName").innerHTML;
     const isBillable = document.getElementById("duzenle_isBillable").value;
     const duration = document.getElementById("duzenle_duration").value;
     const primaryPersonId = document.getElementById("duzenle_primaryPerson").value;
     const secondaryPersonId = document.getElementById("duzenle_secondaryPerson").value;
     const activityFiles = document.getElementById("duzenle_activityFile").files;
     
-    // Validasyon - sadece içerik kontrolü için stripHtml kullan
     const textContent = activityName.replace(/<[^>]*>/g, '').trim();
     if (!activityDate || !projectId || !textContent || !duration || !primaryPersonId) {
         alert("Lütfen tüm zorunlu alanları doldurun.");
         return;
     }
     
-    // FormData'ya ekle - HTML formatlarını koru
     formData.append('activity_date', activityDate);
     formData.append('project_id', projectId);
     formData.append('activity_name', activityName);
@@ -160,7 +148,6 @@ function faaliyetGuncelle() {
     formData.append('primary_person_id', primaryPersonId);
     if (secondaryPersonId) formData.append('secondary_person_id', secondaryPersonId);
     
-    // Birden fazla dosyayı ekle
     for (let i = 0; i < activityFiles.length; i++) {
         formData.append('attachments', activityFiles[i]);
     }
@@ -190,7 +177,6 @@ function faaliyetGuncelle() {
     });
 }
 
-// Faaliyet Silme
 function faaliyetSil() {
     const activityId = document.getElementById("sil_faaliyetId").value;
     const csrftoken = getCookie('csrftoken');
@@ -217,7 +203,6 @@ function faaliyetSil() {
     });
 }
 
-// Silme modalını güncelleme
 function updateFaaliyetSilModal(button) {
     const activityId = button.getAttribute('data-id');
     const activityName = button.getAttribute('data-name');
@@ -226,12 +211,10 @@ function updateFaaliyetSilModal(button) {
     document.getElementById('sil_faaliyetAdi').textContent = activityName;
 }
 
-// Text formatlama fonksiyonları
 function formatText(elementId, command) {
     const element = document.getElementById(elementId);
     element.focus();
     
-    // Liste komutları için doğru execCommand komutlarını kullan
     let execCommand = command;
     if (command === 'ul') {
         execCommand = 'insertUnorderedList';
@@ -247,12 +230,10 @@ function clearFormatting(elementId) {
     element.innerHTML = element.innerText;
 }
 
-// Mevcut dosyaları yükleme ve gösterme
 function loadCurrentAttachments(activityId) {
     const currentFilesDiv = document.getElementById('duzenle_currentFiles');
     const currentFilesList = document.getElementById('duzenle_currentFilesList');
     
-    // AJAX ile mevcut dosyaları yükle
     fetch(`/keychain/get_activity_attachments/${activityId}/`)
         .then(response => response.json())
         .then(data => {
@@ -264,7 +245,6 @@ function loadCurrentAttachments(activityId) {
                     const fileItem = document.createElement('div');
                     fileItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                     
-                    // Dosya ikonu belirleme
                     let iconClass = 'fas fa-file';
                     if (attachment.is_image) {
                         iconClass = 'fas fa-file-image text-info';
@@ -306,7 +286,6 @@ function loadCurrentAttachments(activityId) {
         });
 }
 
-// Mevcut dosyayı kaldırma
 function removeCurrentFile(attachmentId) {
     if (confirm('Bu dosyayı kalıcı olarak silmek istediğinizden emin misiniz?')) {
         const csrftoken = getCookie('csrftoken');
@@ -320,11 +299,9 @@ function removeCurrentFile(attachmentId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Başarılı silme sonrası dosyaları yeniden yükle
                 const activityId = document.getElementById('duzenle_faaliyetId').value;
                 loadCurrentAttachments(activityId);
                 
-                // Success mesajı
                 alert('Dosya başarıyla silindi.');
             } else {
                 alert(data.error || 'Dosya silinirken hata oluştu.');
@@ -337,7 +314,6 @@ function removeCurrentFile(attachmentId) {
     }
 }
 
-// Tüm checkbox'ları değiştirme
 function toggleAllCheckboxes() {
     const selectAll = document.getElementById('selectAll');
     const checkboxes = document.querySelectorAll('.activity-checkbox');
@@ -349,7 +325,6 @@ function toggleAllCheckboxes() {
     updateExportButtons();
 }
 
-// Export butonlarını güncelleme
 function updateExportButtons() {
     const checkboxes = document.querySelectorAll('.activity-checkbox:checked');
     const exportExcelBtn = document.getElementById('exportExcelBtn');
@@ -360,7 +335,6 @@ function updateExportButtons() {
         exportExcelBtn.disabled = !hasSelection;
         exportPDFBtn.disabled = !hasSelection;
         
-        // Buton metinlerini güncelle
         if (hasSelection) {
             exportExcelBtn.innerHTML = `<i class="fas fa-file-excel me-2"></i>Excel (${checkboxes.length})`;
             exportPDFBtn.innerHTML = `<i class="fas fa-file-pdf me-2"></i>PDF (${checkboxes.length})`;
@@ -371,7 +345,6 @@ function updateExportButtons() {
     }
 }
 
-// Excel Export işlemi
 function exportToExcel() {
     const checkboxes = document.querySelectorAll('.activity-checkbox:checked');
     
@@ -380,26 +353,22 @@ function exportToExcel() {
         return;
     }
     
-    // Loading durumu göster
     const exportBtn = document.getElementById('exportExcelBtn');
     const originalText = exportBtn.innerHTML;
     exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>İşleniyor...';
     exportBtn.disabled = true;
     
-    // Form oluştur ve gönder
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/keychain/export_excel/';
     form.style.display = 'none';
     
-    // CSRF token ekle
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'csrfmiddlewaretoken';
     csrfInput.value = getCookie('csrftoken');
     form.appendChild(csrfInput);
     
-    // Seçili faaliyet ID'lerini ekle
     checkboxes.forEach(checkbox => {
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -411,15 +380,13 @@ function exportToExcel() {
     document.body.appendChild(form);
     form.submit();
     
-    // 3 saniye sonra butonu eski haline çevir
     setTimeout(() => {
         exportBtn.innerHTML = originalText;
-        updateExportButtons(); // Checkbox durumuna göre enable/disable yap
+        updateExportButtons();
         document.body.removeChild(form);
     }, 3000);
 }
 
-// PDF Export işlemi  
 function exportToPDF() {
     const checkboxes = document.querySelectorAll('.activity-checkbox:checked');
     
@@ -428,26 +395,22 @@ function exportToPDF() {
         return;
     }
     
-    // Loading durumu göster
     const exportBtn = document.getElementById('exportPDFBtn');
     const originalText = exportBtn.innerHTML;
     exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>İşleniyor...';
     exportBtn.disabled = true;
     
-    // Form oluştur ve gönder
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/keychain/export_pdf/';
     form.style.display = 'none';
     
-    // CSRF token ekle
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'csrfmiddlewaretoken';
     csrfInput.value = getCookie('csrftoken');
     form.appendChild(csrfInput);
     
-    // Seçili faaliyet ID'lerini ekle
     checkboxes.forEach(checkbox => {
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -459,15 +422,13 @@ function exportToPDF() {
     document.body.appendChild(form);
     form.submit();
     
-    // 3 saniye sonra butonu eski haline çevir
     setTimeout(() => {
         exportBtn.innerHTML = originalText;
-        updateExportButtons(); // Checkbox durumuna göre enable/disable yap
+        updateExportButtons();
         document.body.removeChild(form);
     }, 3000);
 }
 
-// Dosya seçimi gösterme fonksiyonları
 function displaySelectedFiles(fileInputId, displayContainerId, fileListId) {
     const fileInput = document.getElementById(fileInputId);
     const displayContainer = document.getElementById(displayContainerId);
@@ -481,7 +442,6 @@ function displaySelectedFiles(fileInputId, displayContainerId, fileListId) {
             const fileItem = document.createElement('div');
             fileItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             
-            // Dosya ikonu belirleme
             let iconClass = 'fas fa-file';
             if (file.type.startsWith('image/')) {
                 iconClass = 'fas fa-file-image text-info';
@@ -548,14 +508,11 @@ function removeFile(fileInputId, index) {
     }
 }
 
-// Sayfa yüklendiğinde çalışacak kodlar
 document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
     
-    // Export butonlarının başlangıç durumunu ayarla
     updateExportButtons();
     
-    // Dosya seçimi event listener'ları
     const activityFileInput = document.getElementById('activityFile');
     if (activityFileInput) {
         activityFileInput.addEventListener('change', function() {
@@ -570,7 +527,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Faaliyet Ekle Modal açılırken tarih alanını bugünün tarihi ile doldur
     const addModal = document.getElementById('faaliyetEkleModal');
     if (addModal) {
         addModal.addEventListener('show.bs.modal', function (event) {
@@ -582,13 +538,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Modal açılırken verileri doldurmak için event listener
     const editModal = document.getElementById('faaliyetDuzenleModal');
     if (editModal) {
         editModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             
-            // Button'dan data attribute'larını al
             const activityId = button.getAttribute('data-id');
             const projectId = button.getAttribute('data-project-id');
             const activityName = button.getAttribute('data-activity-name');
@@ -599,26 +553,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const activityDate = button.getAttribute('data-activity-date');
             const attachment = button.getAttribute('data-attachment');
             
-            // Debug için console'da göster
             console.log('Modal açılıyor - Veriler:', {
                 activityId, projectId, activityName, duration, isBillable, 
                 primaryPersonId, secondaryPersonId, activityDate, attachment
             });
             
-            // HTML entity decode fonksiyonu
             function decodeHtml(html) {
                 const txt = document.createElement('textarea');
                 txt.innerHTML = html;
                 return txt.value;
             }
             
-            // Duration değerini normalize et (virgülü noktaya çevir)
             function normalizeDuration(durationStr) {
                 if (!durationStr) return '';
                 return durationStr.replace(',', '.');
             }
             
-            // Modal içindeki form alanlarını doldur
             const faaliyetIdField = document.getElementById('duzenle_faaliyetId');
             const activityDateField = document.getElementById('duzenle_activityDate');
             const projectSelectField = document.getElementById('duzenle_projectSelect');
@@ -628,7 +578,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const primaryPersonField = document.getElementById('duzenle_primaryPerson');
             const secondaryPersonField = document.getElementById('duzenle_secondaryPerson');
             
-            // Her alanı kontrol et ve değer ata
             if (faaliyetIdField) {
                 faaliyetIdField.value = activityId || '';
                 console.log('Faaliyet ID set edildi:', activityId);
@@ -674,12 +623,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('İkincil kişi set edildi:', secondaryPersonId);
             }
             
-            // Mevcut dosyaları göster (çoklu dosya desteği ile)
             loadCurrentAttachments(activityId);
         });
     }
 
-    // Buton hover efektleri
     const quickButtons = document.querySelectorAll('.btn-outline-primary');
     quickButtons.forEach(button => {
         button.addEventListener('mouseenter', function() {
@@ -693,7 +640,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filtre butonu animasyonu
     const filterButton = document.querySelector('button[type="submit"]');
     if (filterButton) {
         filterButton.addEventListener('mouseenter', function() {
@@ -707,7 +653,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Collapse toggle animasyonu
     const collapseElement = document.getElementById('searchFiltersCollapse');
     const toggleIcon = document.querySelector('#toggleIcon i');
     
@@ -720,13 +665,11 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleIcon.style.transform = 'rotate(0deg)';
         });
         
-        // İlk yüklemede state kontrolü
         if (collapseElement.classList.contains('show')) {
             toggleIcon.style.transform = 'rotate(180deg)';
         }
     }
     
-    // Tarih Filtreleri toggle animasyonu
     const dateCollapseElement = document.getElementById('dateFiltersCollapse');
     const dateToggleIcon = document.querySelector('#dateToggleIcon i');
     
@@ -739,13 +682,11 @@ document.addEventListener('DOMContentLoaded', function() {
             dateToggleIcon.style.transform = 'rotate(0deg)';
         });
         
-        // İlk yüklemede state kontrolü
         if (dateCollapseElement.classList.contains('show')) {
             dateToggleIcon.style.transform = 'rotate(180deg)';
         }
     }
     
-    // Toggle header'lara hover efektleri
     const toggleHeaders = document.querySelectorAll('[data-bs-toggle="collapse"]');
     toggleHeaders.forEach(header => {
         if (header) {
