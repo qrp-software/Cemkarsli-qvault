@@ -570,6 +570,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Faaliyet Ekle Modal açılırken tarih alanını bugünün tarihi ile doldur
+    const addModal = document.getElementById('faaliyetEkleModal');
+    if (addModal) {
+        addModal.addEventListener('show.bs.modal', function (event) {
+            const today = new Date();
+            const activityDateInput = document.getElementById('activityDate');
+            if (activityDateInput) {
+                activityDateInput.value = today.toISOString().split('T')[0];
+            }
+        });
+    }
+    
     // Modal açılırken verileri doldurmak için event listener
     const editModal = document.getElementById('faaliyetDuzenleModal');
     if (editModal) {

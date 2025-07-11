@@ -459,11 +459,11 @@
               <td class="fw-medium">{{ activity.project.name }}</td>
               <td class="fw-medium">{{ activity.activity_name|safe }}</td>
               <td class="fw-medium">{{ activity.duration_hours|floatformat:1 }} saat</td>
-              <td class="text-left">
+              <td class="text-center">
                 {% if activity.is_billable %}
-                  Evet
+                  <i class="fas fa-check-circle text-success" style="font-size: 1.2rem;" title="Faturalanabilir"></i>
                 {% else %}
-                  Hayır
+                  <i class="fas fa-times-circle text-danger" style="font-size: 1.2rem;" title="Faturalanabilir Değil"></i>
                 {% endif %}
               </td>
               <td class="fw-medium">{{ activity.primary_person.username }}</td>
@@ -603,7 +603,7 @@
               <select class="form-select" id="primaryPerson" required style="max-height: 200px; overflow-y: auto;">
                 <option value="">Kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -612,7 +612,7 @@
               <select class="form-select" id="secondaryPerson" style="max-height: 200px; overflow-y: auto;">
                 <option value="">İkincil kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -723,7 +723,7 @@
               <select class="form-select" id="duzenle_primaryPerson" required style="max-height: 200px; overflow-y: auto;">
                 <option value="">Kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -732,7 +732,7 @@
               <select class="form-select" id="duzenle_secondaryPerson" style="max-height: 200px; overflow-y: auto;">
                 <option value="">İkincil kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>

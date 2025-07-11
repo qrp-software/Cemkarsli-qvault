@@ -19,15 +19,12 @@ import os
 from django.utils.html import strip_tags
 import re
 
-# Constants
 SYSTEM_TYPE_CHOICES = {
     '1': 'Database',
     '2': 'VPN',
     '3': 'SERVER',
     '4': 'Application'
 }
-
-# Utility functions
 def get_system_type_label(system_type):
     return SYSTEM_TYPE_CHOICES.get(system_type, system_type)
 
@@ -420,7 +417,6 @@ class CompanyDetailAPIView(LoginRequiredMixin, View):
             additional_info = company.additional_info or {}
             system_type = get_system_type_label(company.system_type)
             
-            # Sistem tipine göre detaylı bilgileri ekle
             detailed_info = {
                 'id': company.id,
                 'project_name': company.project.name if company.project else '',
@@ -429,8 +425,6 @@ class CompanyDetailAPIView(LoginRequiredMixin, View):
                 'system_type': system_type,
                 'additional_info': additional_info
             }
-
-            # Sistem tipine göre özel alanları ekle
             if system_type == 'Database':
                 detailed_info.update({
                     'host': additional_info.get('host', ''),
@@ -471,7 +465,6 @@ class CompanyDetailAPIView(LoginRequiredMixin, View):
 class SystemShareAPIView(LoginRequiredMixin, View):
     def get(self, request):
         try:
-            # Tüm kullanıcıları getir (mevcut kullanıcı hariç)
             users = User.objects.exclude(id=request.user.id)
             users_data = [{'id': user.id, 'username': user.username} for user in users]
             return JsonResponse({'success': True, 'users': users_data})
@@ -479,7 +472,6 @@ class SystemShareAPIView(LoginRequiredMixin, View):
             return create_error_response(str(e))
 
     def post(self, request):
-        # Sistem paylaşım yetkisi kontrolü
         if not request.user.can_share_systems:
             return create_error_response('Sistem paylaşım yetkiniz bulunmamaktadır.')
         
@@ -491,7 +483,6 @@ class SystemShareAPIView(LoginRequiredMixin, View):
 
             system = request.user.companies.get(id=system_id)
             
-            # Mevcut paylaşımı kontrol et ve güncelle
             share, created = SystemShare.objects.get_or_create(
                 system=system,
                 shared_by=request.user,
@@ -501,8 +492,6 @@ class SystemShareAPIView(LoginRequiredMixin, View):
             if not created:
                 share.is_public = is_public
                 share.save()
-            
-            # Paylaşım listesini güncelle
             if not is_public:
                 share.shared_with.clear()
                 for user_id in shared_with_ids:
@@ -533,14 +522,12 @@ class ActivityListView(LoginRequiredMixin, ListView):
     context_object_name = "activities"
 
     def get_queryset(self):
-        # Kullanıcının sahip olduğu veya atanmış olduğu faaliyetler
         user_activities = Activity.objects.filter(
             models.Q(owner=self.request.user) |
             models.Q(primary_person=self.request.user) |
             models.Q(secondary_person=self.request.user)
         ).distinct()
         
-        # Arama filtresi
         search_query = self.request.GET.get('search', '').strip()
         if search_query:
             user_activities = user_activities.filter(
@@ -551,7 +538,6 @@ class ActivityListView(LoginRequiredMixin, ListView):
                 models.Q(secondary_person__username__icontains=search_query)
             )
         
-        # Tarih filtrelerini uygula
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
         
@@ -560,20 +546,18 @@ class ActivityListView(LoginRequiredMixin, ListView):
                 start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
                 user_activities = user_activities.filter(activity_date__gte=start_date)
             except ValueError:
-                pass  # Geçersiz tarih formatı, filtreyi uygulama
+                pass
         
         if end_date:
             try:
                 end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
                 user_activities = user_activities.filter(activity_date__lte=end_date)
             except ValueError:
-                pass  # Geçersiz tarih formatı, filtreyi uygulama
+                pass
         
-        # Sıralama parametresini al
         sort_by = self.request.GET.get('sort', 'activity_date')
         order = self.request.GET.get('order', 'desc')
         
-        # Sıralama alanını belirle
         if sort_by == 'project_code':
             sort_field = 'project__code'
         elif sort_by == 'project_name':
@@ -593,7 +577,6 @@ class ActivityListView(LoginRequiredMixin, ListView):
         else:
             sort_field = 'activity_date'
         
-        # Sıralama yönünü belirle
         if order == 'asc':
             sort_field = sort_field
         else:
@@ -603,18 +586,14 @@ class ActivityListView(LoginRequiredMixin, ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Kullanıcının erişebildiği projeler
         context["projects"] = Project.objects.filter(
             models.Q(is_private=False) | models.Q(owner=self.request.user)
         )
-        # Tüm kullanıcılar (faaliyet ataması için)
         context["users"] = User.objects.all()
         context["current_sort"] = self.request.GET.get('sort', 'activity_date')
         context["current_order"] = self.request.GET.get('order', 'desc')
-        # Mevcut tarih filtreleri
         context["start_date"] = self.request.GET.get('start_date', '')
         context["end_date"] = self.request.GET.get('end_date', '')
-        # Mevcut arama terimi
         context["current_search"] = self.request.GET.get('search', '')
         return context
 
@@ -622,11 +601,9 @@ class ActivityListView(LoginRequiredMixin, ListView):
 class ActivityCreateAPIView(LoginRequiredMixin, View):
     def post(self, request):
         try:
-            # Form data mı JSON data mı kontrol et
             if request.content_type and 'application/json' in request.content_type:
                 data = json.loads(request.body)
             else:
-                # Form data (dosya upload için)
                 data = {
                     'project_id': request.POST.get('project_id'),
                     'activity_name': request.POST.get('activity_name'),
@@ -637,7 +614,6 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
                     'activity_date': request.POST.get('activity_date')
                 }
             
-            # Proje kontrolü
             project_id = data.get('project_id')
             try:
                 project = Project.objects.filter(
@@ -646,7 +622,6 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
             except Project.DoesNotExist:
                 return create_error_response('Project not found')
             
-            # Kullanıcı kontrolü
             primary_person_id = data.get('primary_person_id')
             secondary_person_id = data.get('secondary_person_id')
             
@@ -662,20 +637,17 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
                 except User.DoesNotExist:
                     return create_error_response('Secondary person not found')
             
-            # Süreyi saat cinsinden al ve timedelta'ya çevir
             duration_hours = data.get('duration', 0)
             try:
                 duration_hours = float(duration_hours)
                 if duration_hours < 0:
                     return create_error_response('Duration must be positive')
-                # Saat ve dakikaya çevir
                 hours = int(duration_hours)
                 minutes = int((duration_hours - hours) * 60)
                 duration = timedelta(hours=hours, minutes=minutes)
             except (ValueError, TypeError):
                 return create_error_response('Invalid duration format. Must be a number')
             
-            # Tarih formatını kontrol et
             activity_date_str = data.get('activity_date')
             try:
                 activity_date = datetime.strptime(activity_date_str, '%Y-%m-%d').date()
@@ -692,8 +664,6 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
                 activity_date=activity_date,
                 owner=request.user
             )
-            
-            # Birden fazla dosyayı kaydet
             if 'attachments' in request.FILES:
                 for uploaded_file in request.FILES.getlist('attachments'):
                     ActivityAttachment.objects.create(
@@ -725,18 +695,15 @@ class ActivityCreateAPIView(LoginRequiredMixin, View):
 
 class ActivityUpdateAPIView(LoginRequiredMixin, View):
     def post(self, request, activity_id):
-        # POST methodunu PUT olarak işle
         return self.put(request, activity_id)
     
     def put(self, request, activity_id):
         try:
             activity = Activity.objects.get(id=activity_id, owner=request.user)
             
-            # Form data mı JSON data mı kontrol et
             if request.content_type and 'application/json' in request.content_type:
                 data = json.loads(request.body)
             else:
-                # Form data (dosya upload için)
                 data = {
                     'project_id': request.POST.get('project_id'),
                     'activity_name': request.POST.get('activity_name'),
@@ -747,7 +714,6 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
                     'activity_date': request.POST.get('activity_date')
                 }
             
-            # Proje kontrolü
             project_id = data.get('project_id')
             if project_id:
                 try:
@@ -758,7 +724,6 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
                 except Project.DoesNotExist:
                     return create_error_response('Project not found')
             
-            # Kullanıcı kontrolü
             primary_person_id = data.get('primary_person_id')
             if primary_person_id:
                 try:
@@ -775,21 +740,18 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
             elif secondary_person_id == '':
                 activity.secondary_person = None
             
-            # Süre formatını kontrol et
             duration_hours = data.get('duration')
             if duration_hours is not None:
                 try:
                     duration_hours = float(duration_hours)
                     if duration_hours < 0:
                         return create_error_response('Duration must be positive')
-                    # Saat ve dakikaya çevir
                     hours = int(duration_hours)
                     minutes = int((duration_hours - hours) * 60)
                     activity.duration = timedelta(hours=hours, minutes=minutes)
                 except (ValueError, TypeError):
                     return create_error_response('Invalid duration format. Must be a number')
             
-            # Tarih formatını kontrol et
             activity_date_str = data.get('activity_date')
             if activity_date_str:
                 try:
@@ -797,11 +759,8 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
                 except ValueError:
                     return create_error_response('Invalid date format. Use YYYY-MM-DD format')
             
-            # Diğer alanları güncelle
             activity.activity_name = data.get('activity_name', activity.activity_name)
             activity.is_billable = data.get('is_billable', activity.is_billable)
-            
-            # Yeni dosyaları ekle
             if 'attachments' in request.FILES:
                 for uploaded_file in request.FILES.getlist('attachments'):
                     ActivityAttachment.objects.create(
@@ -848,18 +807,14 @@ class ActivityDeleteAPIView(LoginRequiredMixin, View):
 
 
 def format_html_for_excel(html_content):
-    """HTML içeriği Excel için uygun formata dönüştürür"""
     if not html_content:
         return ""
     
-    # HTML içeriğini temizle ve formatla
     content = html_content
     
-    # Ordered list (numaralı liste) işlemleri
     ol_pattern = r'<ol[^>]*>(.*?)</ol>'
     ol_matches = re.findall(ol_pattern, content, re.DOTALL | re.IGNORECASE)
     for match in ol_matches:
-        # Her li elementini numara ile değiştir
         li_items = re.findall(r'<li[^>]*>(.*?)</li>', match, re.DOTALL | re.IGNORECASE)
         formatted_items = []
         for i, item in enumerate(li_items, 1):
@@ -872,11 +827,9 @@ def format_html_for_excel(html_content):
             content = content.replace(f'<ol>{match}</ol>', replacement)
             content = content.replace(f'<ol >{match}</ol>', replacement)
     
-    # Unordered list (madde işaretli liste) işlemleri  
     ul_pattern = r'<ul[^>]*>(.*?)</ul>'
     ul_matches = re.findall(ul_pattern, content, re.DOTALL | re.IGNORECASE)
     for match in ul_matches:
-        # Her li elementini • ile değiştir
         li_items = re.findall(r'<li[^>]*>(.*?)</li>', match, re.DOTALL | re.IGNORECASE)
         formatted_items = []
         for item in li_items:
@@ -889,10 +842,8 @@ def format_html_for_excel(html_content):
             content = content.replace(f'<ul>{match}</ul>', replacement)
             content = content.replace(f'<ul >{match}</ul>', replacement)
     
-    # Diğer HTML etiketlerini temizle
     content = strip_tags(content)
     
-    # Fazla boşlukları temizle
     content = re.sub(r'\n\s*\n', '\n', content)
     content = content.strip()
     
@@ -911,7 +862,6 @@ class ActivityExportExcelView(LoginRequiredMixin, View):
             if not activity_ids:
                 return JsonResponse({'success': False, 'error': 'Seçili faaliyet bulunamadı'})
             
-            # Kullanıcının sahip olduğu veya atanmış olduğu faaliyetler
             activities = Activity.objects.filter(
                 id__in=activity_ids
             ).filter(
@@ -923,17 +873,14 @@ class ActivityExportExcelView(LoginRequiredMixin, View):
             if not activities:
                 return JsonResponse({'success': False, 'error': 'Seçili faaliyet bulunamadı'})
             
-            # Excel workbook oluştur
             wb = Workbook()
             ws = wb.active
             ws.title = "Faaliyetler"
             
-            # Header stilleri
             header_font = Font(bold=True, color="FFFFFF")
             header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
             header_alignment = Alignment(horizontal="center", vertical="center")
             
-            # Header'ları yazd     
             headers = ["Tarih", "Proje Kodu", "Proje Adı", "Faaliyet", "Süre", "Faturlanabilirlik", "Kişi"]
             for col, header in enumerate(headers, 1):
                 cell = ws.cell(row=1, column=col, value=header)
@@ -941,36 +888,28 @@ class ActivityExportExcelView(LoginRequiredMixin, View):
                 cell.fill = header_fill
                 cell.alignment = header_alignment
             
-            # Verileri yazd    
             for row, activity in enumerate(activities, 2):
                 ws.cell(row=row, column=1, value=activity.activity_date.strftime('%d/%m/%Y'))
                 ws.cell(row=row, column=2, value=activity.project.code)
                 ws.cell(row=row, column=3, value=activity.project.name)
-                # HTML formatlarını Excel için uygun formata dönüştür
                 formatted_activity_name = format_html_for_excel(activity.activity_name) if activity.activity_name else ""
                 activity_cell = ws.cell(row=row, column=4, value=formatted_activity_name)
-                # Çok satırlı metin için wrap text aktif et
                 activity_cell.alignment = Alignment(wrap_text=True, vertical='top')
                 ws.cell(row=row, column=5, value=f"{activity.duration_hours:.1f} saat")
                 ws.cell(row=row, column=6, value="Evet" if activity.is_billable else "Hayır")
                 ws.cell(row=row, column=7, value=activity.primary_person.username)
             
-            # Sütun genişliklerini ayarla
-            column_widths = [12, 15, 25, 40, 10, 15, 15]  # Faaliyet sütununu genişlettik
+            column_widths = [12, 15, 25, 40, 10, 15, 15]
             for col, width in enumerate(column_widths, 1):
                 ws.column_dimensions[ws.cell(row=1, column=col).column_letter].width = width
             
-            # Satır yüksekliklerini ayarla (çok satırlı metin için)
             for row in range(2, len(activities) + 2):
-                ws.row_dimensions[row].height = 60  # Minimum satır yüksekliği
+                ws.row_dimensions[row].height = 60
             
-            # Response oluştur
             response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
             response['Content-Disposition'] = 'attachment; filename="faaliyetler.xlsx"'
-            
-            # Excel dosyasını response'a kaydet
             with io.BytesIO() as buffer:
                 wb.save(buffer)
                 response.write(buffer.getvalue())
@@ -996,7 +935,6 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
             if not activity_ids:
                 return JsonResponse({'success': False, 'error': 'Seçili faaliyet bulunamadı'})
             
-            # Kullanıcının sahip olduğu veya atanmış olduğu faaliyetler
             activities = Activity.objects.filter(
                 id__in=activity_ids
             ).filter(
@@ -1005,22 +943,18 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
                 models.Q(secondary_person=request.user)
             ).select_related('project', 'primary_person', 'secondary_person').order_by('activity_date')
             
-            # Queryset'i listeye çevir ve kontrol et
             activities_list = list(activities)
             if not activities_list:
                 return JsonResponse({'success': False, 'error': 'Seçili faaliyet bulunamadı'})
             
-            # Toplam süre hesaplaması
             total_hours = sum(activity.duration_hours for activity in activities_list)
             billable_hours = sum(activity.duration_hours for activity in activities_list if activity.is_billable)
             non_billable_hours = total_hours - billable_hours
             billing_ratio = (billable_hours / total_hours * 100) if total_hours > 0 else 0
             
-            # Tarih aralığı
             first_date = activities_list[0].activity_date
             last_date = activities_list[-1].activity_date
             
-            # Logo'yu base64 olarak hazırla
             logo_base64 = None
             try:
                 import base64
@@ -1032,7 +966,6 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
             except Exception as e:
                 pass
             
-            # Template context'i hazırla
             context = {
                 'activities': activities_list,
                 'total_activities': len(activities_list),
@@ -1047,10 +980,8 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
                 'logo_base64': logo_base64,
             }
             
-            # HTML template'ini render et
             html_content = render_to_string('keychain/pdf_template.html', context)
             
-            # wkhtmltopdf ayarları
             options = {
                 'page-size': 'A4',
                 'margin-top': '2cm',
@@ -1065,12 +996,11 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
                 'enable-local-file-access': None
             }
             
-            # wkhtmltopdf path'ini bul
             wkhtmltopdf_path = None
             possible_paths = [
                 r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe',
                 r'C:\Program Files (x86)\wkhtmltopdf\bin\wkhtmltopdf.exe',
-                'wkhtmltopdf'  # PATH'de varsa
+                'wkhtmltopdf'
             ]
             
             for path in possible_paths:
@@ -1084,14 +1014,11 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
                     'error': 'wkhtmltopdf bulunamadı. Lütfen https://wkhtmltopdf.org/downloads.html adresinden indirip kurun.'
                 })
             
-            # PDF konfigürasyonu
             config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
             
             try:
-                # HTML'i PDF'e çevir
                 pdf_content = pdfkit.from_string(html_content, False, options=options, configuration=config)
                 
-                # Response oluştur
                 response = HttpResponse(pdf_content, content_type='application/pdf')
                 response['Content-Disposition'] = f'attachment; filename="faaliyet_raporu_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf"'
                 return response
@@ -1127,10 +1054,8 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
             import os
             from django.conf import settings
             
-            # PDF buffer oluştur
             pdf_buffer = io.BytesIO()
             
-            # PDF dokument oluştur
             doc = SimpleDocTemplate(
                 pdf_buffer,
                 pagesize=A4,
@@ -1140,7 +1065,6 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
                 bottomMargin=2*cm
             )
             
-            # Stiller
             styles = getSampleStyleSheet()
             
             title_style = ParagraphStyle(
@@ -1153,10 +1077,8 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
                 fontName='Helvetica-Bold'
             )
             
-            # PDF içeriği
             story = []
             
-            # Logo ekle (varsa)
             logo_path = os.path.join(settings.BASE_DIR, 'keychain', 'static', 'keychain', 'images', 'qvaultlogo.png')
             if os.path.exists(logo_path):
                 try:
@@ -1167,14 +1089,10 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
                 except:
                     pass
             
-            # Test başlığı
             story.append(Paragraph("TEST PDF - ReportLab ile Oluşturuldu", title_style))
             story.append(Paragraph(f"Oluşturulma Zamanı: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
             
-            # PDF oluştur
             doc.build(story)
-            
-            # Response oluştur
             response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="test.pdf"'
             return response
@@ -1184,10 +1102,8 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
 
 
 class ActivityAttachmentsListView(LoginRequiredMixin, View):
-    """Faaliyet dosyalarını listeleme görünümü"""
     def get(self, request, activity_id):
         try:
-            # Kullanıcının erişebildiği faaliyetleri kontrol et
             activity = Activity.objects.filter(
                 models.Q(owner=request.user) | 
                 models.Q(primary_person=request.user) | 
@@ -1221,10 +1137,8 @@ class ActivityAttachmentsListView(LoginRequiredMixin, View):
 
 
 class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
-    """Faaliyet dosyalarını indirme görünümü"""
     def get(self, request, activity_id, attachment_id=None):
         try:
-            # Kullanıcının erişebildiği faaliyetleri kontrol et
             activity = Activity.objects.filter(
                 models.Q(owner=request.user) | 
                 models.Q(primary_person=request.user) | 
@@ -1232,7 +1146,6 @@ class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
             ).get(id=activity_id)
             
             if attachment_id:
-                # Spesifik attachment indir
                 try:
                     attachment = activity.attachments.get(id=attachment_id)
                     file_path = attachment.file.path
@@ -1240,18 +1153,15 @@ class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
                 except ActivityAttachment.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Dosya bulunamadı'})
             else:
-                # Geriye uyumluluk - ilk dosyayı indir
                 first_attachment = activity.attachments.first()
                 if not first_attachment:
                     return JsonResponse({'success': False, 'error': 'Bu faaliyete ait dosya bulunamadı'})
                 file_path = first_attachment.file.path
                 filename = first_attachment.original_name
             
-            # Dosya var mı kontrol et
             if not os.path.exists(file_path):
                 return JsonResponse({'success': False, 'error': 'Dosya sistemde bulunamadı'})
             
-            # Dosyayı indir
             response = FileResponse(
                 open(file_path, 'rb'),
                 as_attachment=True,
@@ -1267,27 +1177,22 @@ class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
 
 
 class ActivityAttachmentDeleteView(LoginRequiredMixin, View):
-    """Faaliyet dosyalarını silme görünümü"""
     def delete(self, request, attachment_id):
         try:
-            # Attachment'ı bul ve kullanıcı yetkisini kontrol et
             attachment = ActivityAttachment.objects.select_related('activity').get(id=attachment_id)
             
-            # Kullanıcının bu faaliyete erişimi var mı kontrol et
             activity = attachment.activity
             if not (activity.owner == request.user or 
                    activity.primary_person == request.user or 
                    activity.secondary_person == request.user):
                 return JsonResponse({'success': False, 'error': 'Bu dosyayı silme yetkiniz yok'})
             
-            # Fiziksel dosyayı sil
             try:
                 if attachment.file and os.path.exists(attachment.file.path):
                     os.remove(attachment.file.path)
             except Exception as e:
                 print(f"Fiziksel dosya silinirken hata: {e}")
             
-            # Veritabanı kaydını sil
             attachment.delete()
             
             return JsonResponse({'success': True, 'message': 'Dosya başarıyla silindi'})
