@@ -27,5 +27,8 @@ urlpatterns = [
     path('delete_activity/<int:activity_id>/', views.ActivityDeleteAPIView.as_view(), name='delete_activity'),
     path('export_excel/', views.ActivityExportExcelView.as_view(), name='export_excel'),
     path('export_pdf/', views.ActivityExportPDFView.as_view(), name='export_pdf'),
+    path('get_activity_attachments/<int:activity_id>/', views.ActivityAttachmentsListView.as_view(), name='get_activity_attachments'),
     path('download_attachment/<int:activity_id>/', views.ActivityAttachmentDownloadView.as_view(), name='download_attachment'),
+    path('download_attachment/<int:activity_id>/<int:attachment_id>/', views.ActivityAttachmentDownloadView.as_view(), name='download_attachment_specific'),
+    path('delete_attachment/<int:attachment_id>/', views.ActivityAttachmentDeleteView.as_view(), name='delete_attachment'),
 ]

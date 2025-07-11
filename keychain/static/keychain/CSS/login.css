@@ -1,0 +1,936 @@
+/**
+ * Keychain Login Page Styles
+ * Senior-level CSS with advanced features and performance optimizations
+ */
+
+/* ==========================================================================
+   CSS Custom Properties & Design System
+   ========================================================================== */
+
+:root {
+  /* Primary Color System */
+  --login-primary-50: #eff6ff;
+  --login-primary-100: #dbeafe;
+  --login-primary-200: #bfdbfe;
+  --login-primary-300: #93c5fd;
+  --login-primary-400: #60a5fa;
+  --login-primary-500: #3b82f6;
+  --login-primary-600: #2563eb;
+  --login-primary-700: #1d4ed8;
+  --login-primary-800: #1e40af;
+  --login-primary-900: #1e3a8a;
+  
+  /* Semantic Colors */
+  --login-primary: var(--login-primary-600);
+  --login-primary-dark: var(--login-primary-700);
+  --login-primary-light: var(--login-primary-500);
+  --login-gradient: linear-gradient(135deg, var(--login-primary-600) 0%, #8b5cf6 100%);
+  --login-gradient-hover: linear-gradient(135deg, var(--login-primary-700) 0%, #7c3aed 100%);
+  
+  /* Typography */
+  --login-font-family: "Inter", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --login-font-weight-normal: 400;
+  --login-font-weight-medium: 500;
+  --login-font-weight-semibold: 600;
+  --login-font-weight-bold: 700;
+  --login-font-weight-extrabold: 800;
+  
+  /* Text Colors */
+  --login-text-primary: #111827;
+  --login-text-secondary: #374151;
+  --login-text-muted: #6b7280;
+  --login-text-light: #9ca3af;
+  --login-text-white: #ffffff;
+  
+  /* Background System */
+  --login-bg-overlay: rgba(0, 0, 0, 0.4);
+  --login-bg-overlay-light: rgba(0, 0, 0, 0.2);
+  --login-container-bg: rgba(255, 255, 255, 0.95);
+  --login-container-bg-hover: rgba(255, 255, 255, 0.98);
+  --login-glass-bg: rgba(255, 255, 255, 0.1);
+  
+  /* Shadow System */
+  --login-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --login-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --login-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --login-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --login-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --login-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --login-shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+  
+  /* Border System */
+  --login-border-width: 1px;
+  --login-border-color: rgba(229, 231, 235, 0.8);
+  --login-border-color-hover: rgba(59, 130, 246, 0.3);
+  --login-border-color-focus: var(--login-primary);
+  
+  /* Spacing System */
+  --login-space-xs: 0.25rem;
+  --login-space-sm: 0.5rem;
+  --login-space-md: 1rem;
+  --login-space-lg: 1.5rem;
+  --login-space-xl: 2rem;
+  --login-space-2xl: 3rem;
+  --login-space-3xl: 4rem;
+  
+  /* Border Radius System */
+  --login-radius-sm: 0.375rem;
+  --login-radius-md: 0.5rem;
+  --login-radius-lg: 0.75rem;
+  --login-radius-xl: 1rem;
+  --login-radius-2xl: 1.5rem;
+  --login-radius-full: 9999px;
+  
+  /* Animation System */
+  --login-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --login-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --login-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --login-transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Z-Index System */
+  --login-z-base: 0;
+  --login-z-elevated: 1;
+  --login-z-overlay: 10;
+  --login-z-modal: 50;
+  --login-z-tooltip: 100;
+}
+
+/* ==========================================================================
+   Modern CSS Reset & Base Styles
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   Main Layout
+   ========================================================================== */
+
+.keychain-login {
+  font-family: var(--login-font-family);
+  font-weight: var(--login-font-weight-normal);
+  line-height: 1.5;
+  color: var(--login-text-primary);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ==========================================================================
+   Background System
+   ========================================================================== */
+
+.keychain-login__background {
+  position: fixed;
+  inset: 0;
+  z-index: var(--login-z-base);
+  background: 
+    var(--login-bg-overlay),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Dynamic background image loading */
+.keychain-login__background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 0;
+  transition: opacity var(--login-transition-slow);
+}
+
+.keychain-login__background[data-bg-image]::before {
+  background-image: var(--login-bg-image);
+  opacity: 1;
+}
+
+.keychain-login__background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 70%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
+/* ==========================================================================
+   Main Container
+   ========================================================================== */
+
+.keychain-login__main {
+  width: 100%;
+  max-width: 28rem;
+  padding: var(--login-space-md);
+  z-index: var(--login-z-elevated);
+  position: relative;
+}
+
+.keychain-login__container {
+  background: var(--login-container-bg);
+  backdrop-filter: blur(32px) saturate(1.5);
+  -webkit-backdrop-filter: blur(32px) saturate(1.5);
+  border-radius: var(--login-radius-2xl);
+  padding: var(--login-space-3xl);
+  box-shadow: 
+    var(--login-shadow-2xl),
+    var(--login-shadow-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: var(--login-border-width) solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--login-transition-slow);
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+}
+
+/* Container animations and effects */
+.keychain-login__container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--login-transition-base);
+  pointer-events: none;
+}
+
+.keychain-login__container:hover {
+  background: var(--login-container-bg-hover);
+  box-shadow: 
+    0 32px 64px -12px rgba(0, 0, 0, 0.25),
+    var(--login-shadow-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.keychain-login__container:hover::before {
+  opacity: 1;
+}
+
+/* Entrance animation */
+@keyframes keychain-login-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-32px) scale(0.96) rotateX(10deg);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+    filter: blur(0);
+  }
+}
+
+.keychain-login__container {
+  animation: keychain-login-appear 800ms var(--login-transition-bounce) backwards;
+}
+
+/* ==========================================================================
+   Header Section
+   ========================================================================== */
+
+.keychain-login__header {
+  text-align: center;
+  margin-bottom: var(--login-space-2xl);
+  position: relative;
+}
+
+.keychain-login__logo {
+  margin-bottom: var(--login-space-lg);
+  position: relative;
+}
+
+.keychain-login__logo img {
+  transition: all var(--login-transition-base);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
+  will-change: transform, filter;
+}
+
+.keychain-login__logo img:hover {
+  transform: scale(1.05) translateY(-2px);
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2));
+}
+
+/* Logo glow effect */
+.keychain-login__logo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(59, 130, 246, 0.3) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity var(--login-transition-base);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.keychain-login__logo:hover::after {
+  opacity: 1;
+}
+
+.keychain-login__title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: var(--login-font-weight-extrabold);
+  background: var(--login-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+  padding: var(--login-space-md) 0;
+  position: relative;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+/* Enhanced title effects */
+.keychain-login__title::before {
+  content: '';
+  position: absolute;
+  inset: -4px -20px;
+  border: 2px solid transparent;
+  border-radius: var(--login-radius-lg);
+  background: var(--login-gradient);
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  transform: skew(-2deg);
+  opacity: 0.7;
+  z-index: -1;
+}
+
+.keychain-login__title::after {
+  content: attr(data-text);
+  position: absolute;
+  top: var(--login-space-md);
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all var(--login-transition-slow);
+  animation: keychain-title-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes keychain-title-shimmer {
+  0%, 90%, 100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(100%);
+  }
+}
+
+/* ==========================================================================
+   Messages & Alerts
+   ========================================================================== */
+
+.keychain-login__messages {
+  margin-bottom: var(--login-space-lg);
+}
+
+.keychain-login__messages .alert {
+  border-radius: var(--login-radius-lg);
+  border: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  font-weight: var(--login-font-weight-medium);
+  box-shadow: var(--login-shadow-lg);
+  animation: keychain-alert-slide-in 400ms ease-out;
+}
+
+@keyframes keychain-alert-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   Form System
+   ========================================================================== */
+
+.keychain-login__form {
+  width: 100%;
+}
+
+.keychain-login__field {
+  margin-bottom: var(--login-space-lg);
+  position: relative;
+}
+
+/* Enhanced Input Styles */
+.keychain-login__input {
+  width: 100%;
+  padding: var(--login-space-lg) var(--login-space-md);
+  border-radius: var(--login-radius-lg);
+  border: var(--login-border-width) solid var(--login-border-color);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: var(--login-font-weight-medium);
+  color: var(--login-text-primary);
+  transition: all var(--login-transition-base);
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+
+.keychain-login__input::placeholder {
+  color: var(--login-text-muted);
+  font-weight: var(--login-font-weight-normal);
+  transition: all var(--login-transition-base);
+}
+
+/* Focus states */
+.keychain-login__input:focus {
+  border-color: var(--login-border-color-focus);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.15),
+    var(--login-shadow-lg);
+  transform: translateY(-1px);
+}
+
+.keychain-login__input:focus::placeholder {
+  opacity: 0.6;
+  transform: translateY(-2px);
+}
+
+/* Error states */
+.keychain-login__input.is-invalid {
+  border-color: #ef4444;
+  background: rgba(254, 242, 242, 0.8);
+  box-shadow: 
+    0 0 0 3px rgba(239, 68, 68, 0.15),
+    var(--login-shadow-md);
+  animation: keychain-input-shake 400ms ease-in-out;
+}
+
+@keyframes keychain-input-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Input field enhancements */
+.keychain-login__field::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--login-radius-lg);
+  padding: 1px;
+  background: var(--login-gradient);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  opacity: 0;
+  transition: opacity var(--login-transition-base);
+  pointer-events: none;
+}
+
+.keychain-login__input:focus + .keychain-login__field::before,
+.keychain-login__field:focus-within::before {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Password Field
+   ========================================================================== */
+
+.keychain-login__password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.keychain-login__password-toggle {
+  position: absolute;
+  right: var(--login-space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--login-text-muted);
+  cursor: pointer;
+  padding: var(--login-space-sm);
+  border-radius: var(--login-radius-sm);
+  transition: all var(--login-transition-base);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.keychain-login__password-toggle:hover {
+  color: var(--login-primary);
+  background: rgba(59, 130, 246, 0.1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.keychain-login__password-toggle:focus {
+  outline: 2px solid var(--login-primary);
+  outline-offset: 2px;
+  color: var(--login-primary);
+}
+
+.keychain-login__password-toggle:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* ==========================================================================
+   Checkbox Styles
+   ========================================================================== */
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--login-space-sm);
+  margin-bottom: var(--login-space-lg);
+}
+
+.form-check-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--login-border-color);
+  border-radius: var(--login-radius-sm);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--login-transition-base);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.form-check-input:checked {
+  background: var(--login-primary);
+  border-color: var(--login-primary);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3e%3cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3e%3c/svg%3e");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: scale(1.1);
+}
+
+.form-check-input:focus {
+  outline: 2px solid var(--login-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form-check-label {
+  color: var(--login-text-secondary);
+  font-weight: var(--login-font-weight-medium);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--login-transition-base);
+}
+
+.form-check-label:hover {
+  color: var(--login-text-primary);
+}
+
+/* ==========================================================================
+   Submit Button
+   ========================================================================== */
+
+.keychain-login__submit {
+  width: 100%;
+  padding: var(--login-space-lg) var(--login-space-xl);
+  background: var(--login-gradient);
+  border: none;
+  border-radius: var(--login-radius-lg);
+  color: var(--login-text-white);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: var(--login-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--login-transition-base);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--login-shadow-lg);
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+}
+
+/* Button effects */
+.keychain-login__submit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left var(--login-transition-slow);
+}
+
+.keychain-login__submit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--login-gradient-hover);
+  opacity: 0;
+  transition: opacity var(--login-transition-base);
+}
+
+.keychain-login__submit:hover::before {
+  left: 100%;
+}
+
+.keychain-login__submit:hover::after {
+  opacity: 1;
+}
+
+.keychain-login__submit:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 16px 32px -8px rgba(59, 130, 246, 0.4),
+    var(--login-shadow-xl);
+}
+
+.keychain-login__submit:active {
+  transform: translateY(-1px) scale(1.01);
+  transition-duration: 100ms;
+}
+
+.keychain-login__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: var(--login-text-muted);
+}
+
+.keychain-login__submit:disabled:hover {
+  transform: none;
+  box-shadow: var(--login-shadow-md);
+}
+
+/* Button content */
+.keychain-login__submit-text,
+.keychain-login__submit-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  transition: all var(--login-transition-base);
+}
+
+.keychain-login__submit-spinner {
+  font-size: 1.125rem;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.keychain-login__footer {
+  margin-top: var(--login-space-xl);
+  text-align: center;
+}
+
+.keychain-login__footer p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--login-text-muted);
+  font-weight: var(--login-font-weight-normal);
+}
+
+/* ==========================================================================
+   Error Feedback
+   ========================================================================== */
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: var(--login-space-sm);
+  font-size: 0.875rem;
+  font-weight: var(--login-font-weight-medium);
+  color: #ef4444;
+  animation: keychain-error-appear 300ms ease-out;
+}
+
+@keyframes keychain-error-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   Accessibility Features
+   ========================================================================== */
+
+/* Skip link */
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Focus management */
+.keychain-login__input:focus,
+.keychain-login__submit:focus,
+.form-check-input:focus,
+.keychain-login__password-toggle:focus {
+  outline: 2px solid var(--login-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .keychain-login__main {
+    padding: var(--login-space-sm);
+    max-width: 100%;
+  }
+  
+  .keychain-login__container {
+    padding: var(--login-space-xl);
+  }
+  
+  .keychain-login__title {
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+  
+  .keychain-login__logo img {
+    width: 80px;
+    height: auto;
+  }
+  
+  .keychain-login__input {
+    padding: var(--login-space-md);
+  }
+  
+  .keychain-login__submit {
+    padding: var(--login-space-md) var(--login-space-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .keychain-login__container {
+    padding: var(--login-space-lg);
+    margin: var(--login-space-sm);
+  }
+  
+  .keychain-login__title {
+    font-size: 1.25rem;
+    letter-spacing: 0.025em;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  .keychain-login__container {
+    border: 2px solid var(--login-text-primary);
+    background: var(--login-text-white);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  .keychain-login__input {
+    border: 2px solid var(--login-text-primary);
+    background: var(--login-text-white);
+  }
+  
+  .keychain-login__submit {
+    border: 2px solid var(--login-text-primary);
+    background: var(--login-text-primary);
+  }
+  
+  .form-check-input {
+    border: 2px solid var(--login-text-primary);
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .keychain-login__container:hover {
+    transform: none;
+  }
+  
+  .keychain-login__submit:hover {
+    transform: none;
+  }
+  
+  .keychain-login__logo img:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --login-text-primary: #f9fafb;
+    --login-text-secondary: #e5e7eb;
+    --login-text-muted: #9ca3af;
+    --login-container-bg: rgba(17, 24, 39, 0.95);
+    --login-container-bg-hover: rgba(17, 24, 39, 0.98);
+    --login-border-color: rgba(75, 85, 99, 0.8);
+  }
+  
+  .keychain-login__input {
+    background: rgba(31, 41, 55, 0.8);
+    color: var(--login-text-primary);
+  }
+  
+  .keychain-login__input:focus {
+    background: rgba(31, 41, 55, 0.95);
+  }
+  
+  .form-check-input {
+    background: rgba(31, 41, 55, 0.8);
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+  .keychain-login__background {
+    display: none;
+  }
+  
+  .keychain-login__container {
+    box-shadow: none;
+    border: 2px solid #000;
+    background: white;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  .keychain-login__submit {
+    background: #000;
+    color: white;
+  }
+}
+
+/* ==========================================================================
+   Performance Optimizations
+   ========================================================================== */
+
+/* GPU acceleration for animated elements */
+.keychain-login__container,
+.keychain-login__submit,
+.keychain-login__input,
+.keychain-login__logo img {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize background image loading */
+.keychain-login__background::before {
+  content-visibility: auto;
+  contain: layout style paint;
+} 

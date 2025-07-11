@@ -10,7 +10,7 @@ class Project(StarterModel):
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True)
     system_type = models.CharField(max_length=50, blank=True, null=True)
-    is_private = models.BooleanField(default=False)  # False = Herkese açık, True = Bana özel
+    is_private = models.BooleanField(default=False) 
     owner = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -49,7 +49,7 @@ class Company(models.Model):
     number = models.CharField(max_length=20)
     system_type = models.CharField(max_length=50)
     additional_info = models.JSONField(default=dict, blank=True)
-    is_private = models.BooleanField(default=False)  # False = Herkese açık, True = Bana özel
+    is_private = models.BooleanField(default=False) 
     owner = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -77,7 +77,7 @@ class SystemShare(models.Model):
 
 
 class Activity(StarterModel):
-    """Faaliyet modeli - her faaliyet için temel bilgileri tutar"""
+    
     project = models.ForeignKey(
         Project, 
         on_delete=models.PROTECT, 
@@ -117,13 +117,6 @@ class Activity(StarterModel):
         blank=True, 
         verbose_name="Açıklama"
     )
-    attachment = models.FileField(
-        upload_to='activity_files/%Y/%m/',
-        blank=True,
-        null=True,
-        verbose_name="Dosya",
-        help_text="Faaliyetle ilgili dosya, resim veya PDF yükleyebilirsiniz"
-    )
     owner = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -141,12 +134,89 @@ class Activity(StarterModel):
 
     @property
     def duration_hours(self):
-        """Süreyi saat cinsinden döndürür"""
+     
         if self.duration:
             return self.duration.total_seconds() / 3600
         return 0
 
     @property
     def billable_status(self):
-        """Faturalanabilirlik durumunu string olarak döndürür"""
+      
         return "Evet" if self.is_billable else "Hayır"
+    
+    @property
+    def attachment(self):
+        
+        first_attachment = self.attachments.first()
+        return first_attachment.file if first_attachment else None
+    
+    @property
+    def all_attachments(self):
+        
+        return self.attachments.all()
+
+
+class ActivityAttachment(models.Model):
+    
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name="Faaliyet"
+    )
+    file = models.FileField(
+        upload_to='activity_files/%Y/%m/',
+        verbose_name="Dosya",
+        help_text="Faaliyetle ilgili dosya, resim veya PDF yükleyebilirsiniz"
+    )
+    original_name = models.CharField(
+        max_length=255,
+        verbose_name="Orijinal Dosya Adı",
+        help_text="Dosyanın yüklendiği andaki orijinal adı",
+        db_column="original_filename"
+    )
+    file_size = models.PositiveIntegerField(
+        verbose_name="Dosya Boyutu (bytes)",
+        default=0
+    )
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Yüklenme Tarihi"
+    )
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="uploaded_attachments",
+        verbose_name="Yükleyen"
+    )
+
+    class Meta:
+        verbose_name = "Faaliyet Dosyası"
+        verbose_name_plural = "Faaliyet Dosyaları"
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        return f"{self.activity} - {self.original_name}"
+    
+    @property
+    def file_extension(self):
+        
+        import os
+        return os.path.splitext(self.original_name)[1].lower()
+    
+    @property
+    def is_image(self):
+        
+        image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+        return self.file_extension in image_extensions
+    
+    @property
+    def is_pdf(self):
+        
+        return self.file_extension == '.pdf'
+    
+    @property
+    def is_document(self):
+        
+        doc_extensions = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf']
+        return self.file_extension in doc_extensions

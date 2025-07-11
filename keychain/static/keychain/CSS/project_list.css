@@ -1,0 +1,160 @@
+/* 15-16 inç laptop ekranlar için optimizasyon */
+@media (max-width: 1920px) {
+  /* Container ve genel spacing optimizasyonu */
+  .container-fluid {
+    padding: 1rem 1.5rem !important;
+  }
+  
+  /* Başlık alanı optimizasyonu */
+  .position-relative .rounded-3 {
+    padding: 1.5rem !important;
+    min-width: 300px !important;
+  }
+  
+  .bg-primary.bg-gradient.rounded-2 {
+    padding: 0.75rem !important;
+  }
+  
+  .bg-primary.bg-gradient.rounded-2 i {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Buton optimizasyonu */
+  .btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .btn i {
+    margin-right: 0.375rem !important;
+  }
+  
+  /* Tablo - biraz büyük tutulacak */
+  .table th {
+    padding: 1rem 1.25rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .table td {
+    padding: 1.25rem 1.25rem !important; /* Tablo hücreleri biraz büyük */
+    font-size: 0.95rem !important;
+  }
+  
+  .table .badge {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  /* Dropdown optimizasyonu */
+  .dropdown-menu {
+    font-size: 0.85rem !important;
+  }
+  
+  .dropdown-item {
+    padding: 0.5rem 1rem !important;
+  }
+  
+  .dropdown-header {
+    font-size: 0.8rem !important;
+    padding: 0.375rem 1rem !important;
+  }
+  
+  /* Modal optimizasyonu */
+  .modal-header {
+    padding: 1rem 1.25rem !important;
+  }
+  
+  .modal-title {
+    font-size: 1.1rem !important;
+  }
+  
+  .modal-body {
+    padding: 1rem 1.25rem !important;
+  }
+  
+  .modal-footer {
+    padding: 0.75rem 1.25rem !important;
+  }
+  
+  /* Form elementleri - biraz büyük tutulacak */
+  .form-label {
+    font-size: 0.95rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.95rem !important;
+    padding: 0.75rem 1rem !important; /* Form alanları biraz büyük */
+  }
+  
+  textarea.form-control {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.95rem !important;
+  }
+  
+  /* Grid spacing */
+  .row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+  }
+  
+  /* Button group optimizasyonu */
+  .btn-group .btn {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Tablo hover efektleri */
+.table-hover tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05) !important;
+}
+
+/* Badge animasyonları */
+.badge {
+  transition: all 0.2s ease;
+}
+
+.badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Modal animasyonları */
+.modal.fade .modal-dialog {
+  transform: scale(0.95);
+  transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* Card hover efektleri */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+/* Button animations */
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Dropdown animations */
+.dropdown-item {
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+  transform: translateX(3px);
+} 
