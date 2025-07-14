@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from .forms import ProjectForm, CompanyForm
 import json
+import time
 from users.models import User
 from django.db import models
 from datetime import datetime, timedelta
@@ -48,6 +49,9 @@ class LoginView(View):
         
         if user is not None:
             login(request, user)
+            # Session'ı başlat
+            request.session['last_activity'] = time.time()
+            request.session.save()
             messages.success(request, f"Hoş geldiniz, {user.username}!")
             print(f"User logged in: {user.username}")  # Debug
             return redirect('keychain:home')
@@ -459,6 +463,27 @@ class CompanyDetailAPIView(LoginRequiredMixin, View):
             return create_error_response('System not found')
         except Exception as e:
             return create_error_response(str(e))
+
+
+class PingView(LoginRequiredMixin, View):
+    """Kullanıcı aktivitesini takip etmek için ping endpoint'i"""
+    
+    def post(self, request):
+        try:
+            # Session'ı güncelle
+            request.session['last_activity'] = time.time()
+            request.session.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Activity recorded',
+                'timestamp': time.time()
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
