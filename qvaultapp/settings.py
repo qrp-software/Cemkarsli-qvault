@@ -136,10 +136,9 @@ LOCALE_PATHS = (BASE_DIR / "locale/",)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_DIR = BASE_DIR / "static"
+STATICFILES_DIRS = [STATIC_DIR]
 STATIC_ROOT = BASE_DIR / "public/static"
-
-# Django otomatik olarak her app'in static klasörünü bulur
-# users/static/, keychain/static/ vb.
 
 # Media files
 MEDIA_DIR = BASE_DIR / "media"
