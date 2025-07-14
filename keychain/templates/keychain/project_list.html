@@ -3,82 +3,86 @@
 
 {% block title %}Proje Listeleri{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'keychain/CSS/project_list.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid px-4 py-5">
+<div class="container-fluid px-3 py-3">
   <!-- Başlık ve Buton -->
-  <div class="d-flex justify-content-between align-items-center mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="position-relative">
-      <div class="rounded-4 p-4 shadow-lg" style="background: linear-gradient(135deg, rgba(13,110,253,0.1) 0%, rgba(13,110,253,0.05) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(13,110,253,0.2); min-width:380px;">
+      <div class="rounded-3 p-3 shadow" style="background: linear-gradient(135deg, rgba(13,110,253,0.1) 0%, rgba(13,110,253,0.05) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(13,110,253,0.2); min-width:320px;">
         <div class="d-flex align-items-center">
-          <div class="bg-primary bg-gradient rounded-3 p-3 me-3 shadow-sm">
-            <i class="fas fa-building text-white fs-3"></i>
+          <div class="bg-primary bg-gradient rounded-2 p-2 me-2 shadow-sm">
+            <i class="fas fa-building text-white fs-5"></i>
           </div>
           <div>
-            <h2 class="fw-bold text-dark mb-1 display-6">
+            <h3 class="fw-bold text-dark mb-1 fs-4">
               Proje Listeleri
-            </h2>
-            <p class="text-muted mb-0" style="font-size:1.1rem; letter-spacing:0.3px;">
+            </h3>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">
               Sistemde kayıtlı proje listelerini yönetin
             </p>
           </div>
         </div>
       </div>
-      <div class="position-absolute" style="top:-10px; right:-10px; width:60px; height:60px; background: linear-gradient(135deg, #0d6efd, #6610f2); opacity:0.1; border-radius:50%; filter: blur(20px);"></div>
+      <div class="position-absolute" style="top:-8px; right:-8px; width:40px; height:40px; background: linear-gradient(135deg, #0d6efd, #6610f2); opacity:0.1; border-radius:50%; filter: blur(15px);"></div>
     </div>
-    <div class="d-flex gap-3">
+    <div class="d-flex gap-2">
       <!-- Sıralama Dropdown -->
       <div class="dropdown">
-        <button class="btn btn-outline-primary btn-lg shadow-sm rounded-3 px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-          <i class="fas fa-sort me-2"></i>Sırala
+        <button class="btn btn-outline-primary shadow-sm rounded-2 px-3 py-2 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-sort me-1"></i>Sırala
         </button>
         <ul class="dropdown-menu">
           <li><h6 class="dropdown-header">ID'ye Göre</h6></li>
           <li><a class="dropdown-item {% if current_sort == 'id' and current_order == 'asc' %}active{% endif %}" href="?sort=id&order=asc">
-            <i class="fas fa-sort-numeric-down me-2"></i>ID (Küçükten Büyüğe)
+            <i class="fas fa-sort-numeric-down me-1"></i>ID (Küçükten Büyüğe)
           </a></li>
           <li><a class="dropdown-item {% if current_sort == 'id' and current_order == 'desc' %}active{% endif %}" href="?sort=id&order=desc">
-            <i class="fas fa-sort-numeric-up me-2"></i>ID (Büyükten Küçüğe)
+            <i class="fas fa-sort-numeric-up me-1"></i>ID (Büyükten Küçüğe)
           </a></li>
           <li><hr class="dropdown-divider"></li>
           <li><h6 class="dropdown-header">Proje Koduna Göre</h6></li>
           <li><a class="dropdown-item {% if current_sort == 'code' and current_order == 'asc' %}active{% endif %}" href="?sort=code&order=asc">
-            <i class="fas fa-sort-alpha-down me-2"></i>Kod (A-Z)
+            <i class="fas fa-sort-alpha-down me-1"></i>Kod (A-Z)
           </a></li>
           <li><a class="dropdown-item {% if current_sort == 'code' and current_order == 'desc' %}active{% endif %}" href="?sort=code&order=desc">
-            <i class="fas fa-sort-alpha-up me-2"></i>Kod (Z-A)
+            <i class="fas fa-sort-alpha-up me-1"></i>Kod (Z-A)
           </a></li>
           <li><hr class="dropdown-divider"></li>
           <li><h6 class="dropdown-header">Proje Adına Göre</h6></li>
           <li><a class="dropdown-item {% if current_sort == 'name' and current_order == 'asc' %}active{% endif %}" href="?sort=name&order=asc">
-            <i class="fas fa-sort-alpha-down me-2"></i>Ad (A-Z)
+            <i class="fas fa-sort-alpha-down me-1"></i>Ad (A-Z)
           </a></li>
           <li><a class="dropdown-item {% if current_sort == 'name' and current_order == 'desc' %}active{% endif %}" href="?sort=name&order=desc">
-            <i class="fas fa-sort-alpha-up me-2"></i>Ad (Z-A)
+            <i class="fas fa-sort-alpha-up me-1"></i>Ad (Z-A)
           </a></li>
           <li><hr class="dropdown-divider"></li>
           <li><h6 class="dropdown-header">Tarihe Göre</h6></li>
           <li><a class="dropdown-item {% if current_sort == 'created_date' and current_order == 'desc' %}active{% endif %}" href="?sort=created_date&order=desc">
-            <i class="fas fa-calendar-alt me-2"></i>Yeni Oluşturulan
+            <i class="fas fa-calendar-alt me-1"></i>Yeni Oluşturulan
           </a></li>
           <li><a class="dropdown-item {% if current_sort == 'created_date' and current_order == 'asc' %}active{% endif %}" href="?sort=created_date&order=asc">
-            <i class="fas fa-calendar-alt me-2"></i>Eski Oluşturulan
+            <i class="fas fa-calendar-alt me-1"></i>Eski Oluşturulan
           </a></li>
           <li><a class="dropdown-item {% if current_sort == 'modified_date' and current_order == 'desc' %}active{% endif %}" href="?sort=modified_date&order=desc">
-            <i class="fas fa-clock me-2"></i>Son Güncellenen
+            <i class="fas fa-clock me-1"></i>Son Güncellenen
           </a></li>
           <li><a class="dropdown-item {% if current_sort == 'modified_date' and current_order == 'asc' %}active{% endif %}" href="?sort=modified_date&order=asc">
-            <i class="fas fa-clock me-2"></i>İlk Güncellenen
+            <i class="fas fa-clock me-1"></i>İlk Güncellenen
           </a></li>
         </ul>
       </div>
-      <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#projeEkleModal">
-        <i class="fas fa-plus-circle me-2"></i>Proje Ekle
+      <button type="button" class="btn btn-primary shadow-sm rounded-2 px-3 py-2" data-bs-toggle="modal" data-bs-target="#projeEkleModal">
+        <i class="fas fa-plus-circle me-1"></i>Proje Ekle
       </button>
     </div>
   </div>
 
   <!-- Projeler Tablosu -->
-  <div class="card shadow border-0 rounded-4">
+  <div class="card shadow border-0 rounded-3">
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
@@ -206,12 +210,12 @@
 
 <!-- Proje Ekle Modal -->
 <div class="modal fade" id="projeEkleModal" tabindex="-1" aria-labelledby="projeEkleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header border-0 bg-primary bg-opacity-10">
-        <h5 class="modal-title fw-bold text-primary" id="projeEkleModalLabel">
-          <i class="fas fa-plus-circle me-2"></i>Yeni Proje Ekle
-        </h5>
+        <h6 class="modal-title fw-bold text-primary" id="projeEkleModalLabel">
+          <i class="fas fa-plus-circle me-1"></i>Yeni Proje Ekle
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -235,7 +239,7 @@
       <div class="modal-footer border-0">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
         <button type="button" class="btn btn-primary" onclick="projeEkle()">
-          <i class="fas fa-save me-2"></i>Kaydet
+          <i class="fas fa-save me-1"></i>Kaydet
         </button>
       </div>
     </div>
@@ -244,12 +248,12 @@
 
 <!-- Proje Düzenle Modal -->
 <div class="modal fade" id="projeDuzenleModal" tabindex="-1" aria-labelledby="projeDuzenleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header border-0 bg-primary bg-opacity-10">
-        <h5 class="modal-title fw-bold text-primary" id="projeDuzenleModalLabel">
-          <i class="fas fa-edit me-2"></i>Proje Düzenle
-        </h5>
+        <h6 class="modal-title fw-bold text-primary" id="projeDuzenleModalLabel">
+          <i class="fas fa-edit me-1"></i>Proje Düzenle
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -274,7 +278,7 @@
       <div class="modal-footer border-0">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
         <button type="button" class="btn btn-primary" onclick="projeGuncelle()">
-          <i class="fas fa-save me-2"></i>Güncelle
+          <i class="fas fa-save me-1"></i>Güncelle
         </button>
       </div>
     </div>
@@ -283,12 +287,12 @@
 
 <!-- Proje Sil Modal -->
 <div class="modal fade" id="projeSilModal" tabindex="-1" aria-labelledby="projeSilModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header border-0 bg-danger bg-opacity-10">
-        <h5 class="modal-title fw-bold text-danger" id="projeSilModalLabel">
-          <i class="fas fa-exclamation-triangle me-2"></i>Proje Sil
-        </h5>
+        <h6 class="modal-title fw-bold text-danger" id="projeSilModalLabel">
+          <i class="fas fa-exclamation-triangle me-1"></i>Proje Sil
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -302,7 +306,7 @@
       <div class="modal-footer border-0">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
         <button type="button" class="btn btn-danger" onclick="projeSil()">
-          <i class="fas fa-trash me-2"></i>Sil
+          <i class="fas fa-trash me-1"></i>Sil
         </button>
       </div>
     </div>

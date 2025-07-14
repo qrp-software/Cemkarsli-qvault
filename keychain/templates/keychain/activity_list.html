@@ -4,40 +4,40 @@
 {% block title %}Faaliyetler{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-5">
+<div class="container-fluid px-3 py-3">
   <!-- Başlık ve Buton -->
-  <div class="d-flex justify-content-between align-items-center mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="position-relative">
-      <div class="rounded-4 p-4 shadow-lg" style="background: linear-gradient(135deg, rgba(13,110,253,0.1) 0%, rgba(13,110,253,0.05) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(13,110,253,0.2); min-width:380px;">
+      <div class="rounded-3 p-3 shadow" style="background: linear-gradient(135deg, rgba(13,110,253,0.1) 0%, rgba(13,110,253,0.05) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(13,110,253,0.2); min-width:300px;">
         <div class="d-flex align-items-center">
-          <div class="bg-primary bg-gradient rounded-3 p-3 me-3 shadow-sm">
-            <i class="fas fa-tasks text-white fs-3"></i>
+          <div class="bg-primary bg-gradient rounded-2 p-2 me-2 shadow-sm">
+            <i class="fas fa-tasks text-white fs-5"></i>
           </div>
           <div>
-            <h2 class="fw-bold text-dark mb-1 display-6">
+            <h3 class="fw-bold text-dark mb-1 fs-4">
               Faaliyetler
-            </h2>
-            <p class="text-muted mb-0" style="font-size:1.1rem; letter-spacing:0.3px;">
+            </h3>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">
               Proje faaliyetlerinizi yönetin
             </p>
           </div>
         </div>
       </div>
-      <div class="position-absolute" style="top:-10px; right:-10px; width:60px; height:60px; background: linear-gradient(135deg, #0d6efd, #6610f2); opacity:0.1; border-radius:50%; filter: blur(20px);"></div>
+      <div class="position-absolute" style="top:-8px; right:-8px; width:40px; height:40px; background: linear-gradient(135deg, #0d6efd, #6610f2); opacity:0.1; border-radius:50%; filter: blur(15px);"></div>
     </div>
-    <div class="d-flex gap-3">
+    <div class="d-flex gap-2">
       <!-- Export Butonları -->
-      <button type="button" class="btn btn-success btn-lg shadow-sm rounded-3 px-4" onclick="exportToExcel()" id="exportExcelBtn" disabled>
-        <i class="fas fa-file-excel me-2"></i>Excel
+      <button type="button" class="btn btn-success shadow-sm rounded-2 px-3 py-2" onclick="exportToExcel()" id="exportExcelBtn" disabled>
+        <i class="fas fa-file-excel me-1"></i>Excel
       </button>
-      <button type="button" class="btn btn-danger btn-lg shadow-sm rounded-3 px-4" onclick="exportToPDF()" id="exportPDFBtn" disabled>
-        <i class="fas fa-file-pdf me-2"></i>PDF
+      <button type="button" class="btn btn-danger shadow-sm rounded-2 px-3 py-2" onclick="exportToPDF()" id="exportPDFBtn" disabled>
+        <i class="fas fa-file-pdf me-1"></i>PDF
       </button>
       
       <!-- Sıralama Dropdown -->
       <div class="dropdown">
-        <button class="btn btn-outline-primary btn-lg shadow-sm rounded-3 px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-          <i class="fas fa-sort me-2"></i>Sırala
+        <button class="btn btn-outline-primary shadow-sm rounded-2 px-3 py-2 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-sort me-1"></i>Sırala
         </button>
         <ul class="dropdown-menu">
           <li><h6 class="dropdown-header">Tarihe Göre</h6></li>
@@ -81,39 +81,39 @@
           </a></li>
         </ul>
       </div>
-      <button type="button" class="btn btn-primary btn-lg shadow-sm rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#faaliyetEkleModal">
-        <i class="fas fa-plus-circle me-2"></i>Faaliyet Ekle
+      <button type="button" class="btn btn-primary shadow-sm rounded-2 px-3 py-2" data-bs-toggle="modal" data-bs-target="#faaliyetEkleModal">
+        <i class="fas fa-plus-circle me-1"></i>Faaliyet Ekle
       </button>
     </div>
   </div>
 
   <!-- Arama ve Filtreler -->
-  <div class="card border-0 rounded-4 mb-4 shadow-lg position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3);">
+  <div class="card border-0 rounded-3 mb-3 shadow position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3);">
     <!-- Dekoratif Arka Plan -->
   
     
-    <div class="card-body p-4 position-relative">
+    <div class="card-body p-3 position-relative">
       <!-- Ana Başlık -->
-      <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
         <div class="d-flex align-items-center">
-          <div class="rounded-4 p-3 me-3 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <i class="fas fa-search-plus text-white fs-5"></i>
+          <div class="rounded-3 p-2 me-2 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <i class="fas fa-search-plus text-white fs-6"></i>
             {% if current_search or start_date or end_date %}
             <div class="position-absolute top-0 start-100 translate-middle">
-              <span class="badge bg-danger rounded-circle" style="font-size: 0.7rem;">
+              <span class="badge bg-danger rounded-circle" style="font-size: 0.6rem;">
                 {% if current_search %}1{% else %}0{% endif %}{% if start_date %}+1{% endif %}{% if end_date %}+1{% endif %}
               </span>
             </div>
             {% endif %}
           </div>
           <div>
-            <h5 class="fw-bold mb-1 text-dark">Akıllı Arama ve Filtreler</h5>
-            <p class="text-muted mb-0 small">Faaliyetlerinizi hızlıca bulun ve özelleştirin</p>
+            <h6 class="fw-bold mb-1 text-dark">Akıllı Arama ve Filtreler</h6>
+            <p class="text-muted mb-0" style="font-size: 0.8rem;">Faaliyetlerinizi hızlıca bulun</p>
           </div>
         </div>
         
         <!-- Sonuç Bilgisi -->
-        <div class="badge bg-primary bg-gradient rounded-pill px-3 py-2 fs-6">
+        <div class="badge bg-primary bg-gradient rounded-pill px-2 py-1 small">
           <i class="fas fa-list-ul me-1"></i>{{ activities|length }} sonuç
         </div>
       </div>
@@ -128,9 +128,9 @@
         {% endif %}
         
         <!-- Genel Arama - Her Zaman Görünür -->
-        <div class="mb-4">
+        <div class="mb-3">
          
-          <div class="input-group input-group-lg shadow-sm">
+          <div class="input-group shadow-sm">
             <span class="input-group-text border-0 text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
               <i class="fas fa-search"></i>
             </span>
@@ -293,13 +293,13 @@
   </div>
 
   <!-- Faaliyetler Tablosu -->
-  <div class="card shadow border-0 rounded-4">
+  <div class="card shadow border-0 rounded-3">
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
           <thead class="table-light">
             <tr>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+              <th class="px-3 py-2 text-secondary fw-semibold border-0">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleAllCheckboxes()">
                   <label class="form-check-label fw-semibold" for="selectAll">
@@ -307,10 +307,10 @@
                   </label>
                 </div>
               </th>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">
+              <th class="px-3 py-2 text-secondary fw-semibold border-0 text-center">
                 <i class="fas fa-paperclip me-1"></i>Dosya
               </th>
-              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+              <th class="px-3 py-2 text-secondary fw-semibold border-0">
                 <a href="?sort=activity_date&order={% if current_sort == 'activity_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
                    class="text-decoration-none text-secondary d-flex align-items-center">
                   Tarih
@@ -422,52 +422,59 @@
           <tbody>
             {% for activity in activities %}
             <tr>
-              <td class="px-4 py-4">
+              <td class="px-3 py-2">
                 <div class="form-check">
                   <input class="form-check-input activity-checkbox" type="checkbox" value="{{ activity.id }}" onchange="updateExportButtons()">
                 </div>
               </td>
-              <td class="px-4 py-4 text-center">
-                {% if activity.attachment %}
-                  <a href="{% url 'keychain:download_attachment' activity.id %}" 
-                     class="btn btn-sm btn-outline-info rounded-pill px-3" 
-                     title="{{ activity.attachment.name|default:'Dosya İndir' }}"
-                     data-bs-toggle="tooltip">
-                    {% if activity.attachment.name|slice:"-4:" == ".pdf" %}
-                      <i class="fas fa-file-pdf me-1"></i>PDF
-                    {% elif activity.attachment.name|slice:"-4:" in ".jpg,.png,.gif" or activity.attachment.name|slice:"-5:" == ".jpeg" %}
-                      <i class="fas fa-file-image me-1"></i>Resim
-                    {% elif activity.attachment.name|slice:"-4:" in ".doc,.xls" or activity.attachment.name|slice:"-5:" in ".docx,.xlsx" %}
-                      <i class="fas fa-file-word me-1"></i>Döküman
-                    {% else %}
-                      <i class="fas fa-file me-1"></i>Dosya
+              <td class="px-3 py-2 text-center">
+                {% if activity.all_attachments.exists %}
+                  <div class="btn-group" role="group">
+                    {% for attachment in activity.all_attachments %}
+                      <a href="{% url 'keychain:download_attachment_specific' activity.id attachment.id %}" 
+                         class="btn btn-sm btn-outline-info rounded-pill px-2 me-1" 
+                         title="{{ attachment.original_name }}"
+                         data-bs-toggle="tooltip">
+                        {% if attachment.is_pdf %}
+                          <i class="fas fa-file-pdf"></i>
+                        {% elif attachment.is_image %}
+                          <i class="fas fa-file-image"></i>
+                        {% elif attachment.is_document %}
+                          <i class="fas fa-file-word"></i>
+                        {% else %}
+                          <i class="fas fa-file"></i>
+                        {% endif %}
+                      </a>
+                    {% endfor %}
+                    {% if activity.all_attachments.count > 1 %}
+                      <span class="badge bg-secondary ms-1">{{ activity.all_attachments.count }}</span>
                     {% endif %}
-                  </a>
+                  </div>
                 {% else %}
                   <span class="text-muted">-</span>
                 {% endif %}
               </td>
-              <td class="px-4 py-4 fw-medium">{{ activity.activity_date|date:"d/m/Y" }}</td>
-              <td class="px-4 py-4 fw-medium">{{ activity.project.code }}</td>
-              <td class="px-4 py-4 fw-medium">{{ activity.project.name }}</td>
-              <td class="px-4 py-4 fw-medium">{{ activity.activity_name|safe }}</td>
-              <td class="px-4 py-4 fw-medium">{{ activity.duration_hours|floatformat:1 }} saat</td>
-              <td class="px-4 py-4 text-left">
+              <td class="fw-medium">{{ activity.activity_date|date:"d/m/Y" }}</td>
+              <td class="fw-medium">{{ activity.project.code }}</td>
+              <td class="fw-medium">{{ activity.project.name }}</td>
+              <td class="fw-medium">{{ activity.activity_name|safe }}</td>
+              <td class="fw-medium">{{ activity.duration_hours|floatformat:1 }} saat</td>
+              <td class="text-center">
                 {% if activity.is_billable %}
-                  Evet
+                  <i class="fas fa-check-circle text-success" style="font-size: 1.2rem;" title="Faturalanabilir"></i>
                 {% else %}
-                  Hayır
+                  <i class="fas fa-times-circle text-danger" style="font-size: 1.2rem;" title="Faturalanabilir Değil"></i>
                 {% endif %}
               </td>
-              <td class="px-4 py-4 fw-medium">{{ activity.primary_person.username }}</td>
-              <td class="px-4 py-4 fw-medium">
+              <td class="fw-medium">{{ activity.primary_person.username }}</td>
+              <td class="fw-medium">
                 {% if activity.secondary_person %}
                   {{ activity.secondary_person.username }}
                 {% else %}
                   <span class="text-muted">-</span>
                 {% endif %}
               </td>
-              <td class="px-4 py-4 text-center">
+              <td class="text-center">
                 {% if activity.owner == user %}
                 <div class="btn-group" role="group">
                   <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
@@ -475,9 +482,9 @@
                           data-bs-target="#faaliyetDuzenleModal"
                           data-id="{{ activity.id }}"
                           data-project-id="{{ activity.project.id }}"
-                          data-activity-name="{{ activity.activity_name|striptags|escape }}"
-                          data-duration="{{ activity.duration }}"
-                          data-is-billable="{{ activity.is_billable }}"
+                          data-activity-name="{{ activity.activity_name|escape }}"
+                          data-duration="{{ activity.duration_hours }}"
+                          data-is-billable="{{ activity.is_billable|yesno:'true,false' }}"
                           data-primary-person-id="{{ activity.primary_person.id }}"
                           data-secondary-person-id="{% if activity.secondary_person %}{{ activity.secondary_person.id }}{% endif %}"
                           data-activity-date="{{ activity.activity_date|date:'Y-m-d' }}"
@@ -502,9 +509,9 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="11" class="text-center py-5 text-muted">
-                <i class="fas fa-tasks fa-3x mb-3 opacity-50"></i>
-                <p class="mb-0">Henüz faaliyet bulunmamaktadır.</p>
+              <td colspan="11" class="text-center py-4 text-muted">
+                <i class="fas fa-tasks fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0 small">Henüz faaliyet bulunmamaktadır.</p>
               </td>
             </tr>
             {% endfor %}
@@ -517,15 +524,15 @@
 
 <!-- Faaliyet Ekle Modal -->
 <div class="modal fade" id="faaliyetEkleModal" tabindex="-1" aria-labelledby="faaliyetEkleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content" style="max-height: 90vh;">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content" style="max-height: 85vh;">
       <div class="modal-header border-0 bg-primary bg-opacity-10">
-        <h5 class="modal-title fw-bold text-primary" id="faaliyetEkleModalLabel">
-          <i class="fas fa-plus-circle me-2"></i>Yeni Faaliyet Ekle
-        </h5>
+        <h6 class="modal-title fw-bold text-primary" id="faaliyetEkleModalLabel">
+          <i class="fas fa-plus-circle me-1"></i>Yeni Faaliyet Ekle
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" style="max-height: calc(90vh - 200px); overflow-y: auto; overflow-x: visible;">
+      <div class="modal-body" style="max-height: calc(85vh - 180px); overflow-y: auto; overflow-x: visible;">
         <form id="faaliyetEkleForm">
           <div class="row g-3">
             <div class="col-md-6">
@@ -596,7 +603,7 @@
               <select class="form-select" id="primaryPerson" required style="max-height: 200px; overflow-y: auto;">
                 <option value="">Kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -605,14 +612,21 @@
               <select class="form-select" id="secondaryPerson" style="max-height: 200px; overflow-y: auto;">
                 <option value="">İkincil kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-12">
-              <label for="activityFile" class="form-label fw-medium">Dosya</label>
-              <input type="file" class="form-control" id="activityFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
-              <div class="form-text">PDF, Word, Excel, resim dosyaları yükleyebilirsiniz. (Maksimum 10MB)</div>
+              <label for="activityFile" class="form-label fw-medium">Dosyalar</label>
+              <input type="file" class="form-control" id="activityFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif" multiple>
+              <div class="form-text">Birden fazla dosya seçebilirsiniz. PDF, Word, Excel, resim dosyaları yükleyebilirsiniz. (Her dosya maksimum 10MB)</div>
+              <div id="selectedFiles" class="mt-2" style="display: none;">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-files text-primary me-2"></i>
+                  <strong>Seçili Dosyalar:</strong>
+                </div>
+                <div id="fileList" class="list-group"></div>
+              </div>
             </div>
           </div>
         </form>
@@ -629,15 +643,15 @@
 
 <!-- Faaliyet Düzenle Modal -->
 <div class="modal fade" id="faaliyetDuzenleModal" tabindex="-1" aria-labelledby="faaliyetDuzenleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content" style="max-height: 90vh;">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content" style="max-height: 85vh;">
       <div class="modal-header border-0 bg-primary bg-opacity-10">
-        <h5 class="modal-title fw-bold text-primary" id="faaliyetDuzenleModalLabel">
-          <i class="fas fa-edit me-2"></i>Faaliyet Düzenle
-        </h5>
+        <h6 class="modal-title fw-bold text-primary" id="faaliyetDuzenleModalLabel">
+          <i class="fas fa-edit me-1"></i>Faaliyet Düzenle
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" style="max-height: calc(90vh - 200px); overflow-y: auto; overflow-x: visible;">
+      <div class="modal-body" style="max-height: calc(85vh - 180px); overflow-y: auto; overflow-x: visible;">
         <form id="faaliyetDuzenleForm">
           <input type="hidden" id="duzenle_faaliyetId">
           <div class="row g-3">
@@ -709,7 +723,7 @@
               <select class="form-select" id="duzenle_primaryPerson" required style="max-height: 200px; overflow-y: auto;">
                 <option value="">Kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
@@ -718,24 +732,27 @@
               <select class="form-select" id="duzenle_secondaryPerson" style="max-height: 200px; overflow-y: auto;">
                 <option value="">İkincil kişi seçiniz</option>
                 {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
+                <option value="{{ user.id }}">{% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-12">
-              <label for="duzenle_activityFile" class="form-label fw-medium">Dosya</label>
-              <input type="file" class="form-control" id="duzenle_activityFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
-              <div class="form-text">PDF, Word, Excel, resim dosyaları yükleyebilirsiniz. (Maksimum 10MB)</div>
-              <div id="duzenle_currentFile" class="mt-2" style="display: none;">
-                <div class="alert alert-info d-flex justify-content-between align-items-center">
-                  <div>
-                    <i class="fas fa-file me-2"></i>
-                    <span id="duzenle_currentFileName">Mevcut dosya</span>
-                  </div>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCurrentFile()">
-                    <i class="fas fa-trash me-1"></i>Kaldır
-                  </button>
+              <label for="duzenle_activityFile" class="form-label fw-medium">Dosyalar</label>
+              <input type="file" class="form-control" id="duzenle_activityFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif" multiple>
+              <div class="form-text">Birden fazla dosya seçebilirsiniz. PDF, Word, Excel, resim dosyaları yükleyebilirsiniz. (Her dosya maksimum 10MB)</div>
+              <div id="duzenle_selectedFiles" class="mt-2" style="display: none;">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-files text-primary me-2"></i>
+                  <strong>Yeni Seçili Dosyalar:</strong>
                 </div>
+                <div id="duzenle_fileList" class="list-group"></div>
+              </div>
+              <div id="duzenle_currentFiles" class="mt-2" style="display: none;">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-folder text-success me-2"></i>
+                  <strong>Mevcut Dosyalar:</strong>
+                </div>
+                <div id="duzenle_currentFilesList" class="list-group"></div>
               </div>
             </div>
           </div>
@@ -753,12 +770,12 @@
 
 <!-- Faaliyet Sil Modal -->
 <div class="modal fade" id="faaliyetSilModal" tabindex="-1" aria-labelledby="faaliyetSilModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header border-0 bg-danger bg-opacity-10">
-        <h5 class="modal-title fw-bold text-danger" id="faaliyetSilModalLabel">
-          <i class="fas fa-exclamation-triangle me-2"></i>Faaliyet Sil
-        </h5>
+        <h6 class="modal-title fw-bold text-danger" id="faaliyetSilModalLabel">
+          <i class="fas fa-exclamation-triangle me-1"></i>Faaliyet Sil
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -786,139 +803,5 @@
 
 {% block extra_js %}
 <script src="{% static 'keychain/js/activity_list.js' %}"></script>
-<script>
-// Hızlı tarih seçimi fonksiyonları
-function setQuickDate(option) {
-    const today = new Date();
-    const startDateInput = document.querySelector('input[name="start_date"]');
-    const endDateInput = document.querySelector('input[name="end_date"]');
-    
-    let startDate, endDate;
-    
-    switch(option) {
-        case 'today':
-            startDate = today;
-            endDate = today;
-            break;
-        case 'yesterday':
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            startDate = yesterday;
-            endDate = yesterday;
-            break;
-        case 'week':
-            const weekStart = new Date(today);
-            weekStart.setDate(today.getDate() - today.getDay());
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
-            startDate = weekStart;
-            endDate = weekEnd;
-            break;
-        case 'month':
-            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-            const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            startDate = monthStart;
-            endDate = monthEnd;
-            break;
-        case 'last30':
-            const last30Start = new Date(today);
-            last30Start.setDate(today.getDate() - 30);
-            startDate = last30Start;
-            endDate = today;
-            break;
-    }
-    
-    // Tarih formatını YYYY-MM-DD olarak ayarla
-    if (startDate) {
-        startDateInput.value = startDate.toISOString().split('T')[0];
-    }
-    if (endDate) {
-        endDateInput.value = endDate.toISOString().split('T')[0];
-    }
-}
 
-// Buton hover efektleri
-document.addEventListener('DOMContentLoaded', function() {
-    const quickButtons = document.querySelectorAll('.btn-outline-primary');
-    quickButtons.forEach(button => {
-        button.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
-        });
-        
-        button.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = 'none';
-        });
-    });
-    
-    // Filtre butonu animasyonu
-    const filterButton = document.querySelector('button[type="submit"]');
-    if (filterButton) {
-        filterButton.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.4)';
-        });
-        
-        filterButton.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.2)';
-        });
-    }
-    
-    // Collapse toggle animasyonu
-    const collapseElement = document.getElementById('searchFiltersCollapse');
-    const toggleIcon = document.querySelector('#toggleIcon i');
-    
-    if (collapseElement && toggleIcon) {
-        collapseElement.addEventListener('show.bs.collapse', function () {
-            toggleIcon.style.transform = 'rotate(180deg)';
-        });
-        
-        collapseElement.addEventListener('hide.bs.collapse', function () {
-            toggleIcon.style.transform = 'rotate(0deg)';
-        });
-        
-        // İlk yüklemede state kontrolü
-        if (collapseElement.classList.contains('show')) {
-            toggleIcon.style.transform = 'rotate(180deg)';
-        }
-    }
-    
-    // Tarih Filtreleri toggle animasyonu
-    const dateCollapseElement = document.getElementById('dateFiltersCollapse');
-    const dateToggleIcon = document.querySelector('#dateToggleIcon i');
-    
-    if (dateCollapseElement && dateToggleIcon) {
-        dateCollapseElement.addEventListener('show.bs.collapse', function () {
-            dateToggleIcon.style.transform = 'rotate(180deg)';
-        });
-        
-        dateCollapseElement.addEventListener('hide.bs.collapse', function () {
-            dateToggleIcon.style.transform = 'rotate(0deg)';
-        });
-        
-        // İlk yüklemede state kontrolü
-        if (dateCollapseElement.classList.contains('show')) {
-            dateToggleIcon.style.transform = 'rotate(180deg)';
-        }
-    }
-    
-    // Toggle header'lara hover efektleri
-    const toggleHeaders = document.querySelectorAll('[data-bs-toggle="collapse"]');
-    toggleHeaders.forEach(header => {
-        if (header) {
-            header.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = 'rgba(102, 126, 234, 0.05)';
-                this.style.borderRadius = '12px';
-                this.style.transition = 'all 0.3s ease';
-            });
-            
-            header.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = 'transparent';
-            });
-        }
-    });
-});
-</script>
 {% endblock %} 
