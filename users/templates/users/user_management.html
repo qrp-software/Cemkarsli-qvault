@@ -1,0 +1,268 @@
+{% extends "keychain/base.html" %}
+{% load static %}
+
+{% block title %}Kullanıcı Yönetimi - Keychain{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'users/css/user_management.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-6 fw-bold mb-2">
+                        <i class="fas fa-users me-3"></i>
+                        Kullanıcı Yönetimi
+                    </h1>
+                    <p class="mb-0 opacity-75">Sistemdeki kullanıcıları görüntüleyin ve yönetin</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="{% url 'users:create_user' %}" class="btn btn-light modern-btn px-4 py-2">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Yeni Kullanıcı Ekle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card text-white h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0 fw-bold">{{ users.count }}</h3>
+                        <p class="mb-0 opacity-75">Toplam Kullanıcı</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card text-white h-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0 fw-bold">{{ users|length }}</h3>
+                        <p class="mb-0 opacity-75">Aktif Kullanıcı</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card text-white h-100" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0 fw-bold">{{ users|length }}</h3>
+                        <p class="mb-0 opacity-75">Yöneticiler</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card text-white h-100" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0 fw-bold">0</h3>
+                        <p class="mb-0 opacity-75">Pasif Kullanıcı</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show modern-card mb-4" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Main Content Card -->
+    <div class="card modern-card">
+        <div class="card-header bg-white py-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="card-title mb-0 gradient-text">
+                        <i class="fas fa-list me-2"></i>
+                        Kullanıcı Listesi
+                    </h2>
+                </div>
+                <div class="col-md-6">
+                    <form method="get" class="d-flex justify-content-md-end mt-3 mt-md-0">
+                        <div class="input-group" style="max-width: 400px;">
+                            <input type="text" 
+                                   class="form-control search-box border-end-0" 
+                                   name="search" 
+                                   value="{{ search_query }}" 
+                                   placeholder="İsim, kullanıcı adı veya e-posta ara...">
+                            <button type="submit" class="btn modern-btn modern-btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            {% if search_query %}
+                                <a href="{% url 'users:user_management' %}" class="btn modern-btn modern-btn-outline">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Kullanıcı</th>
+                                <th>İletişim</th>
+                                <th>Kayıt Tarihi</th>
+                                <th>Durum</th>
+                                <th>Yetki</th>
+                                <th class="text-center">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-3">
+                                                {% if user.first_name %}
+                                                    {{ user.first_name|first }}{{ user.last_name|first }}
+                                                {% else %}
+                                                    {{ user.username|first }}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">
+                                                    {% if user.first_name %}
+                                                        {{ user.first_name }} {{ user.last_name }}
+                                                    {% else %}
+                                                        {{ user.username }}
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">@{{ user.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-medium">{{ user.email }}</div>
+                                            <small class="text-muted">
+                                                <i class="fas fa-envelope me-1"></i>
+                                                E-posta
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-medium">{{ user.date_joined|date:"d.m.Y" }}</div>
+                                            <small class="text-muted">{{ user.date_joined|date:"H:i" }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="status-badge status-active">
+                                                <i class="fas fa-check me-1"></i>
+                                                Aktif
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge status-inactive">
+                                                <i class="fas fa-times me-1"></i>
+                                                Pasif
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_superuser %}
+                                            <span class="role-badge role-super">
+                                                <i class="fas fa-crown me-1"></i>
+                                                Yönetici
+                                            </span>
+                                        {% elif user.is_staff %}
+                                            <span class="role-badge role-staff">
+                                                <i class="fas fa-user-tie me-1"></i>
+                                                Moderatör
+                                            </span>
+                                        {% else %}
+                                            <span class="role-badge role-user">
+                                                <i class="fas fa-user me-1"></i>
+                                                Kullanıcı
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'users:edit_user_permissions' user.id %}" 
+                                           class="action-btn action-edit"
+                                           title="Yetkileri Düzenle"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">
+                        {% if search_query %}
+                            Arama sonucu bulunamadı
+                        {% else %}
+                            Henüz kullanıcı bulunmuyor
+                        {% endif %}
+                    </h4>
+                    <p class="mb-4">
+                        {% if search_query %}
+                            "<strong>{{ search_query }}</strong>" araması için sonuç bulunamadı.<br>
+                            Farklı bir arama terimi deneyin.
+                        {% else %}
+                            Sisteme henüz kullanıcı eklenmemiş.<br>
+                            İlk kullanıcıyı eklemek için yukarıdaki butonu kullanın.
+                        {% endif %}
+                    </p>
+                    {% if search_query %}
+                        <a href="{% url 'users:user_management' %}" class="btn modern-btn modern-btn-primary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Tüm Kullanıcıları Göster
+                        </a>
+                    {% else %}
+                        <a href="{% url 'users:create_user' %}" class="btn modern-btn modern-btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>
+                            İlk Kullanıcıyı Ekle
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/user_management.js' %}"></script>
+{% endblock %} 

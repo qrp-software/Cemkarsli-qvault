@@ -1,0 +1,169 @@
+{% extends "keychain/base.html" %}
+{% load static %}
+
+{% block title %}Yönetici Ayarları - Keychain{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'users/css/admin_settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-6 fw-bold mb-2">
+                        <i class="fas fa-cogs me-3"></i>
+                        Yönetici Ayarları
+                    </h1>
+                    <p class="mb-0 opacity-75">Sistem yönetimi ve kullanıcı ayarları</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="{% url 'users:create_user' %}" class="btn btn-light modern-btn px-4 py-2">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Yeni Kullanıcı Ekle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-12 mb-3">
+            <div class="card stats-card text-white h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0 fw-bold">{{ users_count }}</h3>
+                        <p class="mb-0 opacity-75">Toplam Kullanıcı</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card modern-card h-100">
+                <div class="card-header bg-white py-4">
+                    <h5 class="card-title mb-0 gradient-text">
+                        <i class="fas fa-users me-2"></i>
+                        Kullanıcı Yönetimi
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Kullanıcıları görüntüleyin, düzenleyin ve yeni kullanıcılar ekleyin.
+                    </p>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'users:user_management' %}" class="btn modern-btn modern-btn-primary">
+                            <i class="fas fa-list me-2"></i>
+                            Kullanıcıları Yönet
+                        </a>
+                        <a href="{% url 'users:create_user' %}" class="btn modern-btn modern-btn-outline">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Yeni Kullanıcı Ekle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card modern-card h-100">
+                <div class="card-header bg-white py-4">
+                    <h5 class="card-title mb-0 text-success fw-bold">
+                        <i class="fas fa-folder-open me-2"></i>
+                        Proje Yönetimi
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Projeleri ve sistemleri görüntüleyin ve yönetin.
+                    </p>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'keychain:project_list' %}" class="btn modern-btn modern-btn-success">
+                            <i class="fas fa-list me-2"></i>
+                            Projeleri Görüntüle
+                        </a>
+                        <a href="{% url 'keychain:sistem_list' %}" class="btn modern-btn modern-btn-outline">
+                            <i class="fas fa-cogs me-2"></i>
+                            Sistemleri Görüntüle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card modern-card">
+                <div class="card-header bg-white py-4">
+                    <h5 class="card-title mb-0 gradient-text">
+                        <i class="fas fa-clock me-2"></i>
+                        Son Eklenen Kullanıcılar
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if recent_users %}
+                        <div class="row">
+                            {% for user in recent_users %}
+                                <div class="col-lg-4 col-md-6 mb-3">
+                                    <div class="recent-item">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-3">
+                                                {% if user.first_name %}
+                                                    {{ user.first_name|first }}{{ user.last_name|first }}
+                                                {% else %}
+                                                    {{ user.username|first }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-bold">
+                                                    {% if user.first_name %}
+                                                        {{ user.first_name }} {{ user.last_name }}
+                                                    {% else %}
+                                                        {{ user.username }}
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">{{ user.date_joined|date:"d F Y" }}</small>
+                                            </div>
+                                            <div>
+                                                {% if user.is_active %}
+                                                    <span class="status-badge status-active">Aktif</span>
+                                                {% else %}
+                                                    <span class="status-badge status-inactive">Pasif</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-users fa-3x mb-3 opacity-50"></i>
+                                <h5>Henüz kullanıcı bulunmuyor</h5>
+                                <p>İlk kullanıcıyı eklemek için yukarıdaki butonu kullanın.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/admin_settings.js' %}"></script>
+{% endblock %} 
