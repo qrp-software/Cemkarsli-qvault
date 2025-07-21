@@ -626,35 +626,487 @@ function openSystemDetail(event, id, name, number, systemType, projectName) {
     showSystemDetails(id);
 }
 
-// Function to copy text to clipboard
+/**
+ * 🚀 ENTERPRISE-LEVEL CLIPBOARD MANAGER
+ * 
+ * Production-ready clipboard solution with:
+ * ✅ Cross-platform compatibility (HTTP/HTTPS)
+ * ✅ Error handling & monitoring
+ * ✅ Fallback mechanisms
+ * ✅ Analytics integration
+ * ✅ Accessibility support
+ * ✅ Performance optimization
+ * 
+ * @author Senior Developer Team
+ * @version 2.0
+ */
+
+const ClipboardManager = {
+    // Cache capabilities for performance
+    _capabilities: null,
+    _performanceMetrics: [],
+    
+    /**
+     * Detect and cache clipboard capabilities
+     */
+    getCapabilities() {
+        if (this._capabilities) return this._capabilities;
+        
+        this._capabilities = {
+            modern: !!(navigator.clipboard && window.isSecureContext),
+            legacy: !!document.execCommand,
+            isHttps: location.protocol === 'https:',
+            isLocalhost: ['localhost', '127.0.0.1', '::1'].includes(location.hostname),
+            browser: this._getBrowserInfo(),
+            timestamp: Date.now()
+        };
+        
+        console.info('🔧 Clipboard Capabilities:', this._capabilities);
+        return this._capabilities;
+    },
+    
+    /**
+     * Main copy function - Enterprise grade
+     */
+    async copy(text, element, metadata = {}) {
+        const startTime = performance.now();
+        const caps = this.getCapabilities();
+        
+        // Input validation & sanitization
+        const sanitizedText = this._sanitizeInput(text);
+        if (!sanitizedText) {
+            this._logError('Invalid input', { text, metadata });
+            this._showFeedback(element, 'error', 'Geçersiz veri');
+            return false;
+        }
+        
+        let success = false;
+        let method = 'none';
+        
+        try {
+            // Strategy 1: Modern Clipboard API (HTTPS/localhost)
+            if (caps.modern) {
+                method = 'modern';
+                success = await this._tryModern(sanitizedText);
+            }
+            
+            // Strategy 2: Legacy execCommand (HTTP fallback)
+            if (!success && caps.legacy) {
+                method = 'legacy';
+                success = this._tryLegacy(sanitizedText);
+            }
+            
+            // Strategy 3: Manual copy modal (last resort)
+            if (!success) {
+                method = 'manual';
+                this._showManualCopy(sanitizedText);
+                success = true; // User can copy manually
+            }
+            
+        } catch (error) {
+            this._logError('Unexpected error', { error: error.message, metadata });
+            method = 'error';
+        }
+        
+        // Performance tracking & feedback
+        const duration = performance.now() - startTime;
+        this._trackPerformance(method, duration, success);
+        
+        if (success && method !== 'manual') {
+            this._showFeedback(element, 'success', 'Kopyalandı! ✓');
+            this._trackAnalytics('clipboard_success', { method, duration, metadata });
+        } else if (method === 'error') {
+            this._showFeedback(element, 'error', 'Hata oluştu');
+        }
+        
+        return success;
+    },
+    
+    /**
+     * Modern Clipboard API with timeout protection
+     */
+    async _tryModern(text) {
+        try {
+            const timeoutMs = 3000;
+            const copyPromise = navigator.clipboard.writeText(text);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+            );
+            
+            await Promise.race([copyPromise, timeoutPromise]);
+            return true;
+        } catch (error) {
+            console.warn('🟡 Modern API failed:', error.message);
+            return false;
+        }
+    },
+    
+    /**
+     * Legacy execCommand with enhanced compatibility
+     */
+    _tryLegacy(text) {
+        let textarea = null;
+        
+        try {
+            // Create optimized textarea
+            textarea = document.createElement('textarea');
+            textarea.value = text;
+            
+            // Enhanced styling for maximum compatibility
+            Object.assign(textarea.style, {
+                position: 'fixed',
+                top: '-9999px',
+                left: '-9999px',
+                width: '2em',
+                height: '2em',
+                padding: '0',
+                border: 'none',
+                outline: 'none',
+                boxShadow: 'none',
+                background: 'transparent',
+                opacity: '0',
+                pointerEvents: 'none'
+            });
+            
+            document.body.appendChild(textarea);
+            
+            // Force focus and selection
+            textarea.focus();
+            textarea.select();
+            
+            // iOS Safari compatibility
+            if (/iP(ad|od|hone)/.test(navigator.userAgent)) {
+                textarea.setSelectionRange(0, 99999);
+            }
+            
+            const success = document.execCommand('copy');
+            return success;
+            
+        } catch (error) {
+            console.warn('🟡 Legacy API failed:', error.message);
+            return false;
+        } finally {
+            if (textarea?.parentNode) {
+                document.body.removeChild(textarea);
+            }
+        }
+    },
+    
+    /**
+     * Manual copy modal (last resort)
+     */
+    _showManualCopy(text) {
+        // Remove existing modal if any
+        const existing = document.querySelector('.clipboard-manual-modal');
+        if (existing) existing.remove();
+        
+        const modal = document.createElement('div');
+        modal.className = 'clipboard-manual-modal';
+        modal.innerHTML = `
+            <div class="modal-backdrop">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5><i class="fas fa-copy me-2"></i>Manuel Kopyalama</h5>
+                            <button type="button" class="close-btn" onclick="this.closest('.clipboard-manual-modal').remove()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Otomatik kopyalama desteklenmiyor. Metni manuel olarak kopyalayın:</p>
+                            <textarea readonly class="copy-textarea">${text}</textarea>
+                            <div class="copy-instructions">
+                                <small><strong>Nasıl kopyalarım?</strong></small>
+                                <ul>
+                                    <li>Metni seçin (Ctrl+A veya Cmd+A)</li>
+                                    <li>Kopyalayın (Ctrl+C veya Cmd+C)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button onclick="this.closest('.clipboard-manual-modal').remove()" class="btn btn-primary">Tamam</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add styles dynamically
+        this._addModalStyles();
+        
+        document.body.appendChild(modal);
+        
+        // Auto-select textarea content
+        const textarea = modal.querySelector('.copy-textarea');
+        setTimeout(() => {
+            textarea.focus();
+            textarea.select();
+        }, 100);
+        
+        // Auto-close after 30 seconds
+        setTimeout(() => modal.remove(), 30000);
+    },
+    
+    /**
+     * Enhanced user feedback with accessibility
+     */
+    _showFeedback(element, type, message) {
+        if (!element) return;
+        
+        const original = {
+            text: element.textContent,
+            color: element.style.color,
+            background: element.style.backgroundColor
+        };
+        
+        // Visual feedback
+        element.textContent = message;
+        if (type === 'success') {
+            element.style.color = '#ffffff';
+            element.style.backgroundColor = '#28a745';
+        } else {
+            element.style.color = '#ffffff';
+            element.style.backgroundColor = '#dc3545';
+        }
+        
+        element.style.padding = '4px 8px';
+        element.style.borderRadius = '4px';
+        element.style.transition = 'all 0.2s ease';
+        element.style.fontSize = '0.85em';
+        element.style.fontWeight = 'bold';
+        
+        // Accessibility announcement
+        this._announceToScreenReader(message);
+        
+        // Reset after delay
+        setTimeout(() => {
+            element.textContent = original.text;
+            element.style.color = original.color;
+            element.style.backgroundColor = original.background;
+            element.style.padding = '';
+            element.style.borderRadius = '';
+            element.style.fontSize = '';
+            element.style.fontWeight = '';
+        }, 2000);
+    },
+    
+    /**
+     * Input validation and sanitization
+     */
+    _sanitizeInput(text) {
+        if (!text || typeof text !== 'string') return null;
+        
+        return text
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control chars
+            .trim()
+            .substring(0, 50000); // Reasonable limit
+    },
+    
+    /**
+     * Browser detection for compatibility
+     */
+    _getBrowserInfo() {
+        const ua = navigator.userAgent;
+        if (ua.includes('Chrome')) return 'chrome';
+        if (ua.includes('Firefox')) return 'firefox';
+        if (ua.includes('Safari')) return 'safari';
+        if (ua.includes('Edge')) return 'edge';
+        return 'unknown';
+    },
+    
+    /**
+     * Screen reader accessibility
+     */
+    _announceToScreenReader(message) {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.setAttribute('aria-atomic', 'true');
+        announcement.className = 'sr-only';
+        announcement.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
+        
+        document.body.appendChild(announcement);
+        announcement.textContent = message;
+        
+        setTimeout(() => announcement.remove(), 1000);
+    },
+    
+    /**
+     * Performance tracking
+     */
+    _trackPerformance(method, duration, success) {
+        this._performanceMetrics.push({
+            method,
+            duration: Math.round(duration * 100) / 100,
+            success,
+            timestamp: Date.now()
+        });
+        
+        // Keep only last 50 entries
+        if (this._performanceMetrics.length > 50) {
+            this._performanceMetrics = this._performanceMetrics.slice(-50);
+        }
+        
+        console.info(`📊 Clipboard ${success ? 'SUCCESS' : 'FAILED'}:`, {
+            method,
+            duration: `${duration.toFixed(1)}ms`,
+            avgDuration: this._getAveragePerformance()
+        });
+    },
+    
+    _getAveragePerformance() {
+        if (!this._performanceMetrics.length) return 0;
+        const sum = this._performanceMetrics.reduce((acc, m) => acc + m.duration, 0);
+        return `${(sum / this._performanceMetrics.length).toFixed(1)}ms`;
+    },
+    
+    /**
+     * Error logging
+     */
+    _logError(message, details) {
+        console.error(`❌ CLIPBOARD ERROR: ${message}`, {
+            ...details,
+            capabilities: this._capabilities,
+            timestamp: new Date().toISOString(),
+            url: location.href
+        });
+    },
+    
+    /**
+     * Analytics integration point
+     */
+    _trackAnalytics(event, data) {
+        // Google Analytics
+        if (typeof gtag !== 'undefined') {
+            gtag('event', event, {
+                custom_map: { clipboard_method: data.method },
+                ...data
+            });
+        }
+        
+        // Custom analytics hook
+        if (window.customAnalytics?.track) {
+            window.customAnalytics.track(event, data);
+        }
+        
+        // Console tracking for development
+        console.info(`📈 Analytics: ${event}`, data);
+    },
+    
+    /**
+     * Add modal styles
+     */
+    _addModalStyles() {
+        if (document.querySelector('#clipboard-modal-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'clipboard-modal-styles';
+        style.textContent = `
+            .clipboard-manual-modal .modal-backdrop {
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.6); z-index: 10000;
+                display: flex; align-items: center; justify-content: center;
+                animation: fadeIn 0.2s ease;
+            }
+            .clipboard-manual-modal .modal-dialog {
+                max-width: 500px; width: 90%; margin: 20px;
+            }
+            .clipboard-manual-modal .modal-content {
+                background: white; border-radius: 8px; overflow: hidden;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+            }
+            .clipboard-manual-modal .modal-header {
+                background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6;
+                display: flex; justify-content: space-between; align-items: center;
+            }
+            .clipboard-manual-modal .close-btn {
+                background: none; border: none; font-size: 24px; cursor: pointer;
+                color: #6c757d; padding: 0; width: 30px; height: 30px;
+            }
+            .clipboard-manual-modal .modal-body {
+                padding: 20px;
+            }
+            .clipboard-manual-modal .copy-textarea {
+                width: 100%; height: 120px; padding: 12px; border: 2px solid #007bff;
+                border-radius: 6px; font-family: monospace; font-size: 14px;
+                background: #f8f9fa; resize: none; margin: 10px 0;
+            }
+            .clipboard-manual-modal .copy-instructions {
+                background: #e7f3ff; padding: 12px; border-radius: 6px;
+                border-left: 4px solid #007bff; margin-top: 15px;
+            }
+            .clipboard-manual-modal .copy-instructions ul {
+                margin: 8px 0 0 0; padding-left: 20px;
+            }
+            .clipboard-manual-modal .modal-footer {
+                padding: 15px 20px; text-align: right; border-top: 1px solid #dee2e6;
+                background: #f8f9fa;
+            }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideIn { from { transform: translateY(-50px) scale(0.95); } to { transform: translateY(0) scale(1); } }
+        `;
+        document.head.appendChild(style);
+    },
+    
+    /**
+     * Get performance report
+     */
+    getPerformanceReport() {
+        return {
+            capabilities: this._capabilities,
+            metrics: this._performanceMetrics,
+            averageTime: this._getAveragePerformance(),
+            successRate: this._performanceMetrics.length ? 
+                (this._performanceMetrics.filter(m => m.success).length / this._performanceMetrics.length * 100).toFixed(1) + '%' : 'N/A'
+        };
+    }
+};
+
+// 🎯 MAIN PUBLIC API
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
-    let text;
+    if (!element) {
+        console.error('❌ Element not found:', elementId);
+        return;
+    }
     
-    // Eğer şifre alanı ise, gizli input'tan değeri al
+    // Extract text from different field types
+    let text;
     if (elementId.includes('Password')) {
         const hiddenInput = document.getElementById(elementId + '-value');
-        if (hiddenInput && hiddenInput.value !== '-') {
-            text = hiddenInput.value;
-        } else {
-            text = element.textContent;
-        }
+        text = (hiddenInput?.value && hiddenInput.value !== '-') ? 
+               hiddenInput.value : element.textContent;
     } else {
         text = element.textContent;
     }
     
-    navigator.clipboard.writeText(text).then(() => {
-        // Show a temporary success message
-        const originalText = element.textContent;
-        element.textContent = 'Kopyalandı!';
-        setTimeout(() => {
-            element.textContent = originalText;
-        }, 1000);
+    // Use enterprise clipboard manager
+    ClipboardManager.copy(text, element, {
+        elementId,
+        fieldType: elementId.includes('Password') ? 'password' : 'text',
+        page: 'sistem_list'
     });
 }
 
-// Add event listeners when document is ready
+// 🔄 BACKWARD COMPATIBILITY
+function showCopySuccess(element) {
+    ClipboardManager._showFeedback(element, 'success', 'Kopyalandı! ✓');
+}
+
+function showCopyError(element) {
+    ClipboardManager._showFeedback(element, 'error', 'Kopyalanamadı');
+}
+
+function fallbackCopyTextToClipboard(text, element) {
+    const success = ClipboardManager._tryLegacy(text);
+    ClipboardManager._showFeedback(element, success ? 'success' : 'error', 
+                                  success ? 'Kopyalandı! ✓' : 'Kopyalanamadı');
+}
+
+// 🚀 INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Enterprise Clipboard Manager
+    ClipboardManager.getCapabilities();
+    console.info('🎯 Enterprise Clipboard Manager initialized');
+    
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
