@@ -626,133 +626,82 @@ function openSystemDetail(event, id, name, number, systemType, projectName) {
     showSystemDetails(id);
 }
 
-/**
- * 🚀 ENTERPRISE-LEVEL CLIPBOARD MANAGER
- * 
- * Production-ready clipboard solution with:
- * ✅ Cross-platform compatibility (HTTP/HTTPS)
- * ✅ Error handling & monitoring
- * ✅ Fallback mechanisms
- * ✅ Analytics integration
- * ✅ Accessibility support
- * ✅ Performance optimization
- * 
- * @author Senior Developer Team
- * @version 2.0
- */
-
 const ClipboardManager = {
-    // Cache capabilities for performance
     _capabilities: null,
-    _performanceMetrics: [],
     
-    /**
-     * Detect and cache clipboard capabilities
-     */
     getCapabilities() {
         if (this._capabilities) return this._capabilities;
         
         this._capabilities = {
             modern: !!(navigator.clipboard && window.isSecureContext),
-            legacy: !!document.execCommand,
-            isHttps: location.protocol === 'https:',
-            isLocalhost: ['localhost', '127.0.0.1', '::1'].includes(location.hostname),
-            browser: this._getBrowserInfo(),
-            timestamp: Date.now()
+            legacy: !!document.execCommand
         };
         
-        console.info('🔧 Clipboard Capabilities:', this._capabilities);
         return this._capabilities;
     },
     
-    /**
-     * Main copy function - Enterprise grade
-     */
-    async copy(text, element, metadata = {}) {
-        const startTime = performance.now();
+    async copy(text, element) {
         const caps = this.getCapabilities();
-        
-        // Input validation & sanitization
         const sanitizedText = this._sanitizeInput(text);
+        
         if (!sanitizedText) {
-            this._logError('Invalid input', { text, metadata });
             this._showFeedback(element, 'error', 'Geçersiz veri');
             return false;
         }
         
         let success = false;
-        let method = 'none';
         
         try {
-            // Strategy 1: Modern Clipboard API (HTTPS/localhost)
             if (caps.modern) {
-                method = 'modern';
                 success = await this._tryModern(sanitizedText);
             }
             
-            // Strategy 2: Legacy execCommand (HTTP fallback)
             if (!success && caps.legacy) {
-                method = 'legacy';
                 success = this._tryLegacy(sanitizedText);
             }
             
-            // Strategy 3: Manual copy modal (last resort)
             if (!success) {
-                method = 'manual';
                 this._showManualCopy(sanitizedText);
-                success = true; // User can copy manually
+                return true;
             }
             
         } catch (error) {
-            this._logError('Unexpected error', { error: error.message, metadata });
-            method = 'error';
+            console.error('Clipboard error:', error);
         }
         
-        // Performance tracking & feedback
-        const duration = performance.now() - startTime;
-        this._trackPerformance(method, duration, success);
-        
-        if (success && method !== 'manual') {
-            this._showFeedback(element, 'success', 'Kopyalandı! ✓');
-            this._trackAnalytics('clipboard_success', { method, duration, metadata });
-        } else if (method === 'error') {
-            this._showFeedback(element, 'error', 'Hata oluştu');
+        if (success) {
+            this._showFeedback(element, 'success', 'Kopyalandı!');
+        } else {
+            this._showFeedback(element, 'error', 'Kopyalanamadı');
         }
         
         return success;
     },
     
-    /**
-     * Modern Clipboard API with timeout protection
-     */
     async _tryModern(text) {
         try {
-            const timeoutMs = 3000;
-            const copyPromise = navigator.clipboard.writeText(text);
             const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+                setTimeout(() => reject(new Error('Timeout')), 3000)
             );
             
-            await Promise.race([copyPromise, timeoutPromise]);
+            await Promise.race([
+                navigator.clipboard.writeText(text),
+                timeoutPromise
+            ]);
+            
             return true;
         } catch (error) {
-            console.warn('🟡 Modern API failed:', error.message);
             return false;
         }
     },
     
-    /**
-     * Legacy execCommand with enhanced compatibility
-     */
     _tryLegacy(text) {
         let textarea = null;
         
         try {
-            // Create optimized textarea
             textarea = document.createElement('textarea');
             textarea.value = text;
             
-            // Enhanced styling for maximum compatibility
             Object.assign(textarea.style, {
                 position: 'fixed',
                 top: '-9999px',
@@ -769,21 +718,16 @@ const ClipboardManager = {
             });
             
             document.body.appendChild(textarea);
-            
-            // Force focus and selection
             textarea.focus();
             textarea.select();
             
-            // iOS Safari compatibility
             if (/iP(ad|od|hone)/.test(navigator.userAgent)) {
                 textarea.setSelectionRange(0, 99999);
             }
             
-            const success = document.execCommand('copy');
-            return success;
+            return document.execCommand('copy');
             
         } catch (error) {
-            console.warn('🟡 Legacy API failed:', error.message);
             return false;
         } finally {
             if (textarea?.parentNode) {
@@ -792,11 +736,7 @@ const ClipboardManager = {
         }
     },
     
-    /**
-     * Manual copy modal (last resort)
-     */
     _showManualCopy(text) {
-        // Remove existing modal if any
         const existing = document.querySelector('.clipboard-manual-modal');
         if (existing) existing.remove();
         
@@ -829,25 +769,18 @@ const ClipboardManager = {
             </div>
         `;
         
-        // Add styles dynamically
         this._addModalStyles();
-        
         document.body.appendChild(modal);
         
-        // Auto-select textarea content
         const textarea = modal.querySelector('.copy-textarea');
         setTimeout(() => {
             textarea.focus();
             textarea.select();
         }, 100);
         
-        // Auto-close after 30 seconds
         setTimeout(() => modal.remove(), 30000);
     },
     
-    /**
-     * Enhanced user feedback with accessibility
-     */
     _showFeedback(element, type, message) {
         if (!element) return;
         
@@ -857,26 +790,15 @@ const ClipboardManager = {
             background: element.style.backgroundColor
         };
         
-        // Visual feedback
         element.textContent = message;
-        if (type === 'success') {
-            element.style.color = '#ffffff';
-            element.style.backgroundColor = '#28a745';
-        } else {
-            element.style.color = '#ffffff';
-            element.style.backgroundColor = '#dc3545';
-        }
-        
+        element.style.color = '#ffffff';
+        element.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
         element.style.padding = '4px 8px';
         element.style.borderRadius = '4px';
         element.style.transition = 'all 0.2s ease';
         element.style.fontSize = '0.85em';
         element.style.fontWeight = 'bold';
         
-        // Accessibility announcement
-        this._announceToScreenReader(message);
-        
-        // Reset after delay
         setTimeout(() => {
             element.textContent = original.text;
             element.style.color = original.color;
@@ -888,111 +810,11 @@ const ClipboardManager = {
         }, 2000);
     },
     
-    /**
-     * Input validation and sanitization
-     */
     _sanitizeInput(text) {
         if (!text || typeof text !== 'string') return null;
-        
-        return text
-            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control chars
-            .trim()
-            .substring(0, 50000); // Reasonable limit
+        return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().substring(0, 50000);
     },
     
-    /**
-     * Browser detection for compatibility
-     */
-    _getBrowserInfo() {
-        const ua = navigator.userAgent;
-        if (ua.includes('Chrome')) return 'chrome';
-        if (ua.includes('Firefox')) return 'firefox';
-        if (ua.includes('Safari')) return 'safari';
-        if (ua.includes('Edge')) return 'edge';
-        return 'unknown';
-    },
-    
-    /**
-     * Screen reader accessibility
-     */
-    _announceToScreenReader(message) {
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.setAttribute('aria-atomic', 'true');
-        announcement.className = 'sr-only';
-        announcement.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
-        
-        document.body.appendChild(announcement);
-        announcement.textContent = message;
-        
-        setTimeout(() => announcement.remove(), 1000);
-    },
-    
-    /**
-     * Performance tracking
-     */
-    _trackPerformance(method, duration, success) {
-        this._performanceMetrics.push({
-            method,
-            duration: Math.round(duration * 100) / 100,
-            success,
-            timestamp: Date.now()
-        });
-        
-        // Keep only last 50 entries
-        if (this._performanceMetrics.length > 50) {
-            this._performanceMetrics = this._performanceMetrics.slice(-50);
-        }
-        
-        console.info(`📊 Clipboard ${success ? 'SUCCESS' : 'FAILED'}:`, {
-            method,
-            duration: `${duration.toFixed(1)}ms`,
-            avgDuration: this._getAveragePerformance()
-        });
-    },
-    
-    _getAveragePerformance() {
-        if (!this._performanceMetrics.length) return 0;
-        const sum = this._performanceMetrics.reduce((acc, m) => acc + m.duration, 0);
-        return `${(sum / this._performanceMetrics.length).toFixed(1)}ms`;
-    },
-    
-    /**
-     * Error logging
-     */
-    _logError(message, details) {
-        console.error(`❌ CLIPBOARD ERROR: ${message}`, {
-            ...details,
-            capabilities: this._capabilities,
-            timestamp: new Date().toISOString(),
-            url: location.href
-        });
-    },
-    
-    /**
-     * Analytics integration point
-     */
-    _trackAnalytics(event, data) {
-        // Google Analytics
-        if (typeof gtag !== 'undefined') {
-            gtag('event', event, {
-                custom_map: { clipboard_method: data.method },
-                ...data
-            });
-        }
-        
-        // Custom analytics hook
-        if (window.customAnalytics?.track) {
-            window.customAnalytics.track(event, data);
-        }
-        
-        // Console tracking for development
-        console.info(`📈 Analytics: ${event}`, data);
-    },
-    
-    /**
-     * Add modal styles
-     */
     _addModalStyles() {
         if (document.querySelector('#clipboard-modal-styles')) return;
         
@@ -1044,31 +866,13 @@ const ClipboardManager = {
             @keyframes slideIn { from { transform: translateY(-50px) scale(0.95); } to { transform: translateY(0) scale(1); } }
         `;
         document.head.appendChild(style);
-    },
-    
-    /**
-     * Get performance report
-     */
-    getPerformanceReport() {
-        return {
-            capabilities: this._capabilities,
-            metrics: this._performanceMetrics,
-            averageTime: this._getAveragePerformance(),
-            successRate: this._performanceMetrics.length ? 
-                (this._performanceMetrics.filter(m => m.success).length / this._performanceMetrics.length * 100).toFixed(1) + '%' : 'N/A'
-        };
     }
 };
 
-// 🎯 MAIN PUBLIC API
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
-    if (!element) {
-        console.error('❌ Element not found:', elementId);
-        return;
-    }
+    if (!element) return;
     
-    // Extract text from different field types
     let text;
     if (elementId.includes('Password')) {
         const hiddenInput = document.getElementById(elementId + '-value');
@@ -1078,17 +882,11 @@ function copyToClipboard(elementId) {
         text = element.textContent;
     }
     
-    // Use enterprise clipboard manager
-    ClipboardManager.copy(text, element, {
-        elementId,
-        fieldType: elementId.includes('Password') ? 'password' : 'text',
-        page: 'sistem_list'
-    });
+    ClipboardManager.copy(text, element);
 }
 
-// 🔄 BACKWARD COMPATIBILITY
 function showCopySuccess(element) {
-    ClipboardManager._showFeedback(element, 'success', 'Kopyalandı! ✓');
+    ClipboardManager._showFeedback(element, 'success', 'Kopyalandı!');
 }
 
 function showCopyError(element) {
@@ -1098,16 +896,12 @@ function showCopyError(element) {
 function fallbackCopyTextToClipboard(text, element) {
     const success = ClipboardManager._tryLegacy(text);
     ClipboardManager._showFeedback(element, success ? 'success' : 'error', 
-                                  success ? 'Kopyalandı! ✓' : 'Kopyalanamadı');
+                                  success ? 'Kopyalandı!' : 'Kopyalanamadı');
 }
 
-// 🚀 INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Enterprise Clipboard Manager
     ClipboardManager.getCapabilities();
-    console.info('🎯 Enterprise Clipboard Manager initialized');
     
-    // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
