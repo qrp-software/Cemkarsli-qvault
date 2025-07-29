@@ -626,36 +626,282 @@ function openSystemDetail(event, id, name, number, systemType, projectName) {
     showSystemDetails(id);
 }
 
-// Function to copy text to clipboard
+const ClipboardManager = {
+    _capabilities: null,
+    
+    getCapabilities() {
+        if (this._capabilities) return this._capabilities;
+        
+        this._capabilities = {
+            modern: !!(navigator.clipboard && window.isSecureContext),
+            legacy: !!document.execCommand
+        };
+        
+        return this._capabilities;
+    },
+    
+    async copy(text, element) {
+        const caps = this.getCapabilities();
+        const sanitizedText = this._sanitizeInput(text);
+        
+        if (!sanitizedText) {
+            this._showFeedback(element, 'error', 'Geçersiz veri');
+            return false;
+        }
+        
+        let success = false;
+        
+        try {
+            if (caps.modern) {
+                success = await this._tryModern(sanitizedText);
+            }
+            
+            if (!success && caps.legacy) {
+                success = this._tryLegacy(sanitizedText);
+            }
+            
+            if (!success) {
+                this._showManualCopy(sanitizedText);
+                return true;
+            }
+            
+        } catch (error) {
+            console.error('Clipboard error:', error);
+        }
+        
+        if (success) {
+            this._showFeedback(element, 'success', 'Kopyalandı!');
+        } else {
+            this._showFeedback(element, 'error', 'Kopyalanamadı');
+        }
+        
+        return success;
+    },
+    
+    async _tryModern(text) {
+        try {
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 3000)
+            );
+            
+            await Promise.race([
+                navigator.clipboard.writeText(text),
+                timeoutPromise
+            ]);
+            
+            return true;
+        } catch (error) {
+            return false;
+        }
+    },
+    
+    _tryLegacy(text) {
+        let textarea = null;
+        
+        try {
+            textarea = document.createElement('textarea');
+            textarea.value = text;
+            
+            Object.assign(textarea.style, {
+                position: 'fixed',
+                top: '-9999px',
+                left: '-9999px',
+                width: '2em',
+                height: '2em',
+                padding: '0',
+                border: 'none',
+                outline: 'none',
+                boxShadow: 'none',
+                background: 'transparent',
+                opacity: '0',
+                pointerEvents: 'none'
+            });
+            
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            if (/iP(ad|od|hone)/.test(navigator.userAgent)) {
+                textarea.setSelectionRange(0, 99999);
+            }
+            
+            return document.execCommand('copy');
+            
+        } catch (error) {
+            return false;
+        } finally {
+            if (textarea?.parentNode) {
+                document.body.removeChild(textarea);
+            }
+        }
+    },
+    
+    _showManualCopy(text) {
+        const existing = document.querySelector('.clipboard-manual-modal');
+        if (existing) existing.remove();
+        
+        const modal = document.createElement('div');
+        modal.className = 'clipboard-manual-modal';
+        modal.innerHTML = `
+            <div class="modal-backdrop">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5><i class="fas fa-copy me-2"></i>Manuel Kopyalama</h5>
+                            <button type="button" class="close-btn" onclick="this.closest('.clipboard-manual-modal').remove()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Otomatik kopyalama desteklenmiyor. Metni manuel olarak kopyalayın:</p>
+                            <textarea readonly class="copy-textarea">${text}</textarea>
+                            <div class="copy-instructions">
+                                <small><strong>Nasıl kopyalarım?</strong></small>
+                                <ul>
+                                    <li>Metni seçin (Ctrl+A veya Cmd+A)</li>
+                                    <li>Kopyalayın (Ctrl+C veya Cmd+C)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button onclick="this.closest('.clipboard-manual-modal').remove()" class="btn btn-primary">Tamam</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        this._addModalStyles();
+        document.body.appendChild(modal);
+        
+        const textarea = modal.querySelector('.copy-textarea');
+        setTimeout(() => {
+            textarea.focus();
+            textarea.select();
+        }, 100);
+        
+        setTimeout(() => modal.remove(), 30000);
+    },
+    
+    _showFeedback(element, type, message) {
+        if (!element) return;
+        
+        const original = {
+            text: element.textContent,
+            color: element.style.color,
+            background: element.style.backgroundColor
+        };
+        
+        element.textContent = message;
+        element.style.color = '#ffffff';
+        element.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+        element.style.padding = '4px 8px';
+        element.style.borderRadius = '4px';
+        element.style.transition = 'all 0.2s ease';
+        element.style.fontSize = '0.85em';
+        element.style.fontWeight = 'bold';
+        
+        setTimeout(() => {
+            element.textContent = original.text;
+            element.style.color = original.color;
+            element.style.backgroundColor = original.background;
+            element.style.padding = '';
+            element.style.borderRadius = '';
+            element.style.fontSize = '';
+            element.style.fontWeight = '';
+        }, 2000);
+    },
+    
+    _sanitizeInput(text) {
+        if (!text || typeof text !== 'string') return null;
+        return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().substring(0, 50000);
+    },
+    
+    _addModalStyles() {
+        if (document.querySelector('#clipboard-modal-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'clipboard-modal-styles';
+        style.textContent = `
+            .clipboard-manual-modal .modal-backdrop {
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.6); z-index: 10000;
+                display: flex; align-items: center; justify-content: center;
+                animation: fadeIn 0.2s ease;
+            }
+            .clipboard-manual-modal .modal-dialog {
+                max-width: 500px; width: 90%; margin: 20px;
+            }
+            .clipboard-manual-modal .modal-content {
+                background: white; border-radius: 8px; overflow: hidden;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+            }
+            .clipboard-manual-modal .modal-header {
+                background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6;
+                display: flex; justify-content: space-between; align-items: center;
+            }
+            .clipboard-manual-modal .close-btn {
+                background: none; border: none; font-size: 24px; cursor: pointer;
+                color: #6c757d; padding: 0; width: 30px; height: 30px;
+            }
+            .clipboard-manual-modal .modal-body {
+                padding: 20px;
+            }
+            .clipboard-manual-modal .copy-textarea {
+                width: 100%; height: 120px; padding: 12px; border: 2px solid #007bff;
+                border-radius: 6px; font-family: monospace; font-size: 14px;
+                background: #f8f9fa; resize: none; margin: 10px 0;
+            }
+            .clipboard-manual-modal .copy-instructions {
+                background: #e7f3ff; padding: 12px; border-radius: 6px;
+                border-left: 4px solid #007bff; margin-top: 15px;
+            }
+            .clipboard-manual-modal .copy-instructions ul {
+                margin: 8px 0 0 0; padding-left: 20px;
+            }
+            .clipboard-manual-modal .modal-footer {
+                padding: 15px 20px; text-align: right; border-top: 1px solid #dee2e6;
+                background: #f8f9fa;
+            }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideIn { from { transform: translateY(-50px) scale(0.95); } to { transform: translateY(0) scale(1); } }
+        `;
+        document.head.appendChild(style);
+    }
+};
+
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
-    let text;
+    if (!element) return;
     
-    // Eğer şifre alanı ise, gizli input'tan değeri al
+    let text;
     if (elementId.includes('Password')) {
         const hiddenInput = document.getElementById(elementId + '-value');
-        if (hiddenInput && hiddenInput.value !== '-') {
-            text = hiddenInput.value;
-        } else {
-            text = element.textContent;
-        }
+        text = (hiddenInput?.value && hiddenInput.value !== '-') ? 
+               hiddenInput.value : element.textContent;
     } else {
         text = element.textContent;
     }
     
-    navigator.clipboard.writeText(text).then(() => {
-        // Show a temporary success message
-        const originalText = element.textContent;
-        element.textContent = 'Kopyalandı!';
-        setTimeout(() => {
-            element.textContent = originalText;
-        }, 1000);
-    });
+    ClipboardManager.copy(text, element);
 }
 
-// Add event listeners when document is ready
+function showCopySuccess(element) {
+    ClipboardManager._showFeedback(element, 'success', 'Kopyalandı!');
+}
+
+function showCopyError(element) {
+    ClipboardManager._showFeedback(element, 'error', 'Kopyalanamadı');
+}
+
+function fallbackCopyTextToClipboard(text, element) {
+    const success = ClipboardManager._tryLegacy(text);
+    ClipboardManager._showFeedback(element, success ? 'success' : 'error', 
+                                  success ? 'Kopyalandı!' : 'Kopyalanamadı');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
+    ClipboardManager.getCapabilities();
+    
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
