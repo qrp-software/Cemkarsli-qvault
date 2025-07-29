@@ -22,6 +22,7 @@ urlpatterns = [
     path('toggle_company_privacy/<int:company_id>/', views.CompanyTogglePrivacyAPIView.as_view(), name='toggle_company_privacy'),
     path('get_company_details/<int:company_id>/', views.CompanyDetailAPIView.as_view(), name='get_company_details'),
     path('system/share/', views.SystemShareAPIView.as_view(), name='system_share'),
+    path('ping/', views.PingView.as_view(), name='ping'),
     path('add_activity/', views.ActivityCreateAPIView.as_view(), name='add_activity'),
     path('update_activity/<int:activity_id>/', views.ActivityUpdateAPIView.as_view(), name='update_activity'),
     path('delete_activity/<int:activity_id>/', views.ActivityDeleteAPIView.as_view(), name='delete_activity'),
