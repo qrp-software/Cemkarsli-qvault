@@ -84,8 +84,7 @@ class Activity(StarterModel):
         related_name="activities",
         verbose_name="Proje"
     )
-    activity_name = models.CharField(
-        max_length=255, 
+    activity_name = models.TextField(
         verbose_name="Faaliyet"
     )
     duration = models.DurationField(
