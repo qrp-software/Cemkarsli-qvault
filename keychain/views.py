@@ -547,15 +547,12 @@ class ActivityListView(LoginRequiredMixin, ListView):
     context_object_name = "activities"
 
     def get_queryset(self):
-        user_activities = Activity.objects.filter(
-            models.Q(owner=self.request.user) |
-            models.Q(primary_person=self.request.user) |
-            models.Q(secondary_person=self.request.user)
-        ).distinct()
+       
+        all_activities = Activity.objects.all()
         
         search_query = self.request.GET.get('search', '').strip()
         if search_query:
-            user_activities = user_activities.filter(
+            all_activities = all_activities.filter(
                 models.Q(activity_name__icontains=search_query) |
                 models.Q(project__code__icontains=search_query) |
                 models.Q(project__name__icontains=search_query) |
@@ -569,14 +566,14 @@ class ActivityListView(LoginRequiredMixin, ListView):
         if start_date:
             try:
                 start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-                user_activities = user_activities.filter(activity_date__gte=start_date)
+                all_activities = all_activities.filter(activity_date__gte=start_date)
             except ValueError:
                 pass
         
         if end_date:
             try:
                 end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-                user_activities = user_activities.filter(activity_date__lte=end_date)
+                all_activities = all_activities.filter(activity_date__lte=end_date)
             except ValueError:
                 pass
         
@@ -607,7 +604,7 @@ class ActivityListView(LoginRequiredMixin, ListView):
         else:
             sort_field = '-' + sort_field
         
-        return user_activities.select_related('project', 'primary_person', 'secondary_person').order_by(sort_field)
+        return all_activities.select_related('project', 'primary_person', 'secondary_person').order_by(sort_field)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -889,10 +886,6 @@ class ActivityExportExcelView(LoginRequiredMixin, View):
             
             activities = Activity.objects.filter(
                 id__in=activity_ids
-            ).filter(
-                models.Q(owner=request.user) | 
-                models.Q(primary_person=request.user) | 
-                models.Q(secondary_person=request.user)
             ).select_related('project', 'primary_person', 'secondary_person').order_by('activity_date')
             
             if not activities:
@@ -962,10 +955,6 @@ class ActivityExportPDFView(LoginRequiredMixin, View):
             
             activities = Activity.objects.filter(
                 id__in=activity_ids
-            ).filter(
-                models.Q(owner=request.user) | 
-                models.Q(primary_person=request.user) | 
-                models.Q(secondary_person=request.user)
             ).select_related('project', 'primary_person', 'secondary_person').order_by('activity_date')
             
             activities_list = list(activities)
@@ -1129,11 +1118,7 @@ class ActivityExportPDFTestView(LoginRequiredMixin, View):
 class ActivityAttachmentsListView(LoginRequiredMixin, View):
     def get(self, request, activity_id):
         try:
-            activity = Activity.objects.filter(
-                models.Q(owner=request.user) | 
-                models.Q(primary_person=request.user) | 
-                models.Q(secondary_person=request.user)
-            ).get(id=activity_id)
+            activity = Activity.objects.get(id=activity_id)
             
             attachments = activity.attachments.all()
             attachments_data = []
@@ -1164,11 +1149,7 @@ class ActivityAttachmentsListView(LoginRequiredMixin, View):
 class ActivityAttachmentDownloadView(LoginRequiredMixin, View):
     def get(self, request, activity_id, attachment_id=None):
         try:
-            activity = Activity.objects.filter(
-                models.Q(owner=request.user) | 
-                models.Q(primary_person=request.user) | 
-                models.Q(secondary_person=request.user)
-            ).get(id=activity_id)
+            activity = Activity.objects.get(id=activity_id)
             
             if attachment_id:
                 try:
@@ -1205,12 +1186,6 @@ class ActivityAttachmentDeleteView(LoginRequiredMixin, View):
     def delete(self, request, attachment_id):
         try:
             attachment = ActivityAttachment.objects.select_related('activity').get(id=attachment_id)
-            
-            activity = attachment.activity
-            if not (activity.owner == request.user or 
-                   activity.primary_person == request.user or 
-                   activity.secondary_person == request.user):
-                return JsonResponse({'success': False, 'error': 'Bu dosyayı silme yetkiniz yok'})
             
             try:
                 if attachment.file and os.path.exists(attachment.file.path):
