@@ -114,7 +114,7 @@ class UserManagementView(LoginRequiredMixin, SuperUserRequiredMixin, View):
     def get(self, request):
         search_query = request.GET.get('search', '')
         # Kendimizi listeden hariç tutalım
-        users = User.objects.exclude(id=request.user.id)
+        users = User.objects.all()
         
         if search_query:
             users = users.filter(

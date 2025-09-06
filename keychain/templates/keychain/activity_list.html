@@ -416,6 +416,37 @@
                   {% endif %}
                 </a>
               </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=secondary_person&order={% if current_sort == 'secondary_person' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  İşlenme Durumu
+                  {% if current_sort == 'is_processed' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+              <th class="px-4 py-3 text-secondary fw-semibold border-0">
+                <a href="?sort=secondary_person&order={% if current_sort == 'secondary_person' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   class="text-decoration-none text-secondary d-flex align-items-center">
+                  Ödeme Durumu
+                  {% if current_sort == 'is_paid' %}
+                    {% if current_order == 'asc' %}
+                      <i class="fas fa-sort-up ms-1"></i>
+                    {% else %}
+                      <i class="fas fa-sort-down ms-1"></i>
+                    {% endif %}
+                  {% else %}
+                    <i class="fas fa-sort ms-1 opacity-50"></i>
+                  {% endif %}
+                </a>
+              </th>
+
               <th class="px-4 py-3 text-secondary fw-semibold border-0 text-center">Eylemler</th>
             </tr>
           </thead>
@@ -474,8 +505,22 @@
                   <span class="text-muted">-</span>
                 {% endif %}
               </td>
+              <td class="fw-medium">
+                {% if activity.is_processed %}
+                  <i class="fas fa-check-circle text-success" style="font-size: 1.2rem;" title="İşlendi"></i>
+                {% else %}
+                  <i class="fas fa-times-circle text-danger" style="font-size: 1.2rem;" title="İşlenmedi"></i>
+                {% endif %}
+              </td>
+              <td class="fw-medium">                
+                {% if activity.is_paid %}
+                  <i class="fas fa-check-circle text-success" style="font-size: 1.2rem;" title="Ödendi"></i>
+                {% else %}
+                  <i class="fas fa-times-circle text-danger" style="font-size: 1.2rem;" title="Ödenmedi"></i>
+                {% endif %}
+            </td>
               <td class="text-center">
-                {% if activity.owner == user %}
+                {% if activity.owner == user or user.is_superuser %}
                 <div class="btn-group" role="group">
                   <button type="button" class="btn btn-sm btn-outline-primary rounded-start-3 px-3" 
                           data-bs-toggle="modal" 
@@ -485,6 +530,8 @@
                           data-activity-name="{{ activity.activity_name|escape }}"
                           data-duration="{{ activity.duration_hours }}"
                           data-is-billable="{{ activity.is_billable|yesno:'true,false' }}"
+                          data-is-processed="{{ activity.is_processed|yesno:'true,false' }}"
+                          data-is-paid="{{ activity.is_paid|yesno:'true,false' }}"
                           data-primary-person-id="{{ activity.primary_person.id }}"
                           data-secondary-person-id="{% if activity.secondary_person %}{{ activity.secondary_person.id }}{% endif %}"
                           data-activity-date="{{ activity.activity_date|date:'Y-m-d' }}"
@@ -596,7 +643,7 @@
             </div>
             <div class="col-md-4">
               <label for="duration" class="form-label fw-medium">Süre (Saat) <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="duration" placeholder="8" step="0.5" min="0" required>
+              <input type="number" class="form-control" id="duration" value="8" step="0.5" min="0" required>
             </div>
             <div class="col-md-4">
               <label for="primaryPerson" class="form-label fw-medium">Kişi <span class="text-danger">*</span></label>
@@ -707,13 +754,29 @@
               </div>
               <input type="hidden" id="duzenle_activityNameHidden" name="activity_name">
             </div>
-            <div class="col-12">
+            <div {% if user.is_superuser %}class="col-md-4"{% else %}class="col-md-12"{% endif %}>
               <label for="duzenle_isBillable" class="form-label fw-medium">Faturalanabilir <span class="text-danger">*</span></label>
               <select class="form-select" id="duzenle_isBillable" required>
                 <option value="true">Evet</option>
                 <option value="false">Hayır</option>
               </select>
             </div>
+            {% if user.is_superuser %}
+            <div class="col-md-4">
+              <label for="duzenle_isProcessed" class="form-label fw-medium">İşlenme Durumu<span class="text-danger">*</span></label>
+              <select class="form-select" id="duzenle_isProcessed" required>
+                <option value="true">Evet</option>
+                <option value="false">Hayır</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="duzenle_isPaid" class="form-label fw-medium">Ödeme Durumu <span class="text-danger">*</span></label>
+              <select class="form-select" id="duzenle_isPaid" required>
+                <option value="true">Evet</option>
+                <option value="false">Hayır</option>
+              </select>
+            </div>
+            {% endif %}
             <div class="col-md-4">
               <label for="duzenle_duration" class="form-label fw-medium">Süre (Saat) <span class="text-danger">*</span></label>
               <input type="number" class="form-control" id="duzenle_duration" placeholder="8" step="0.5" min="0" required>

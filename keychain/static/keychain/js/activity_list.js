@@ -129,6 +129,8 @@ function faaliyetGuncelle() {
     const projectId = document.getElementById("duzenle_projectSelect").value;
     const activityName = document.getElementById("duzenle_activityName").innerHTML;
     const isBillable = document.getElementById("duzenle_isBillable").value;
+    const isProcessed = document.getElementById("duzenle_isProcessed").value;
+    const isPaid = document.getElementById("duzenle_isPaid").value;
     const duration = document.getElementById("duzenle_duration").value;
     const primaryPersonId = document.getElementById("duzenle_primaryPerson").value;
     const secondaryPersonId = document.getElementById("duzenle_secondaryPerson").value;
@@ -144,6 +146,8 @@ function faaliyetGuncelle() {
     formData.append('project_id', projectId);
     formData.append('activity_name', activityName);
     formData.append('is_billable', isBillable);
+    formData.append('is_processed', isProcessed);
+    formData.append('is_paid', isPaid);
     formData.append('duration', duration);
     formData.append('primary_person_id', primaryPersonId);
     if (secondaryPersonId) formData.append('secondary_person_id', secondaryPersonId);
@@ -548,13 +552,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const activityName = button.getAttribute('data-activity-name');
             const duration = button.getAttribute('data-duration');
             const isBillable = button.getAttribute('data-is-billable');
+            const isProcessed = button.getAttribute('data-is-processed');
+            const isPaid = button.getAttribute('data-is-paid');
             const primaryPersonId = button.getAttribute('data-primary-person-id');
             const secondaryPersonId = button.getAttribute('data-secondary-person-id');
             const activityDate = button.getAttribute('data-activity-date');
             const attachment = button.getAttribute('data-attachment');
             
             console.log('Modal açılıyor - Veriler:', {
-                activityId, projectId, activityName, duration, isBillable, 
+                activityId, projectId, activityName, duration, isBillable, isProcessed, isPaid,
                 primaryPersonId, secondaryPersonId, activityDate, attachment
             });
             
@@ -574,6 +580,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const projectSelectField = document.getElementById('duzenle_projectSelect');
             const activityNameField = document.getElementById('duzenle_activityName');
             const isBillableField = document.getElementById('duzenle_isBillable');
+            const isProcessedField = document.getElementById('duzenle_isProcessed');
+            const isPaidField = document.getElementById('duzenle_isPaid');
             const durationField = document.getElementById('duzenle_duration');
             const primaryPersonField = document.getElementById('duzenle_primaryPerson');
             const secondaryPersonField = document.getElementById('duzenle_secondaryPerson');
@@ -605,6 +613,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isBillableField) {
                 isBillableField.value = isBillable || 'true';
                 console.log('Faturalanabilir set edildi:', isBillable);
+            }
+            
+            if (isProcessedField) {
+                isProcessedField.value = isProcessed || 'true';
+                console.log('İşlenme durumu set edildi:', isProcessed);
+            }
+            
+            if (isPaidField) {
+                isPaidField.value = isPaid || 'true';
+                console.log('Ödeme durumu set edildi:', isPaid);
             }
             
             if (durationField) {

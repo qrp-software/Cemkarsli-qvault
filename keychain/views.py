@@ -731,6 +731,8 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
                     'activity_name': request.POST.get('activity_name'),
                     'duration': request.POST.get('duration'),
                     'is_billable': request.POST.get('is_billable') == 'true',
+                    'is_processed': request.POST.get('is_processed') == 'true',
+                    'is_paid': request.POST.get('is_paid') == 'true',
                     'primary_person_id': request.POST.get('primary_person_id'),
                     'secondary_person_id': request.POST.get('secondary_person_id'),
                     'activity_date': request.POST.get('activity_date')
@@ -783,6 +785,8 @@ class ActivityUpdateAPIView(LoginRequiredMixin, View):
             
             activity.activity_name = data.get('activity_name', activity.activity_name)
             activity.is_billable = data.get('is_billable', activity.is_billable)
+            activity.is_processed = data.get('is_processed', activity.is_processed)
+            activity.is_paid = data.get('is_paid', activity.is_paid)
             if 'attachments' in request.FILES:
                 for uploaded_file in request.FILES.getlist('attachments'):
                     ActivityAttachment.objects.create(
